@@ -1,0 +1,4 @@
+# Ignore all environment files.
+/.env*
+!/.env.sample
+!/.env.test

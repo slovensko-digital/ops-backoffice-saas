@@ -1,0 +1,7 @@
+.gitignore
+.kamal/
+.ruby-version
+config/*.key
+config/deploy.staging.yml
+config/deploy.yml
+README.md
