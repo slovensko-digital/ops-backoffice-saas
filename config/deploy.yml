@@ -6,13 +6,13 @@ servers:
   web:
     # nginx should be started just after the initialization is done
     # run `kamal zammad-init` first
-    cmd: "'/usr/sbin/nginx -g \"daemon off;\"'"
+    cmd: "/ops-backoffice-nginx-entrypoint.sh"
     # TODO might ditch the whole nginx when https://github.com/basecamp/kamal-proxy/issues/48 is implemented
     options:
       "add-host": host.docker.internal:host-gateway
 
   worker:
-    cmd: "'/docker-entrypoint.sh zammad-scheduler'"
+    cmd: "zammad-scheduler"
     options:
       "add-host": host.docker.internal:host-gateway
 
@@ -65,11 +65,11 @@ accessories:
       "add-host": host.docker.internal:host-gateway
     env:
       <<: *env
-    cmd: "'/docker-entrypoint.sh zammad-railsserver'"
+    cmd: "zammad-railsserver"
 
   websocket:
     <<: *accessory-hack
-    cmd: "'/docker-entrypoint.sh zammad-websocket'"
+    cmd: "zammad-websocket"
 
   redis:
     image: redis:7.0
