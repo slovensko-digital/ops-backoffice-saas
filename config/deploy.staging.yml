@@ -1,0 +1,35 @@
+x-load-env:
+  - "<% require 'dotenv'; Dotenv.load('.env.staging.' + ENV.fetch('BACKOFFICE_PREFIX')) %>"
+
+servers:
+  web:
+    hosts:
+      - dev.slovensko.digital
+  worker:
+    hosts:
+      - dev.slovensko.digital
+
+proxy:
+  host: "<%= ENV.fetch('BACKOFFICE_PREFIX') %>.ops.dev.slovensko.digital"
+
+registry: &registry
+  server: registry.dev.slovensko.digital
+  username:
+    - KAMAL_REGISTRY_USERNAME
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+accessories:
+  railsserver:
+    registry:
+      <<: *registry
+  websocket:
+    registry:
+      <<: *registry
+
+builder:
+  arch: amd64
+  remote: ssh://kamal@dev.slovensko.digital
+
+ssh:
+  user: kamal
