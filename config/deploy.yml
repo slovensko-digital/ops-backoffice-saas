@@ -28,9 +28,9 @@ env: &env
     SERVICE_NAME: "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>"
 
     BACKGROUND_SERVICES_LOG_TO_STDOUT: 1
-    POSTGRESQL_DB: "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>-staging"
+    POSTGRESQL_DB: "ops_backoffice_<%= ENV.fetch('BACKOFFICE_PREFIX').gsub(/-/, '_') %>_staging"
     POSTGRESQL_HOST: host.docker.internal
-    POSTGRESQL_USER: "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>"
+    POSTGRESQL_USER: "ops_backoffice_<%= ENV.fetch('BACKOFFICE_PREFIX').gsub(/-/, '_') %>"
     RAILS_LOG_TO_STDOUT: true
     RAILS_SERVE_STATIC_FILES: true
     REDIS_URL: "redis://ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>-redis:6379/1"
@@ -60,7 +60,7 @@ accessories:
       - web
       - worker
     volumes:
-      - "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>_storage:/opt/zammad/storage"
+      - "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>-storage:/opt/zammad/storage"
     options:
       "add-host": host.docker.internal:host-gateway
     env:
@@ -80,4 +80,4 @@ accessories:
       - data:/data
 
 volumes:
-  - "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>_storage:/opt/zammad/storage"
+  - "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>-storage:/opt/zammad/storage"
