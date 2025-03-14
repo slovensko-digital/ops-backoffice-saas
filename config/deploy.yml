@@ -44,6 +44,10 @@ env: &env
   secret:
     - RAILS_MASTER_KEY
     - POSTGRESQL_PASS
+    - ADMIN_EMAIL
+    - ADMIN_PASSWORD
+    - ADMIN_FIRSTNAME
+    - ADMIN_LASTNAME
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"

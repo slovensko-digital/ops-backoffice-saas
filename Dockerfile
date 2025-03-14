@@ -6,6 +6,8 @@ COPY --chown=zammad:zammad ./config/nginx.conf /etc/nginx/sites-enabled/default
 COPY --chown=zammad:zammad ./config/ops-backoffice-nginx-entrypoint.sh /opt/ops-backoffice-nginx-entrypoint.sh
 COPY --chown=zammad:zammad ./config/zammad_init_and_nginx.sh /opt/zammad_init_and_nginx.sh
 
+COPY ./lib/tasks/ops/backoffice.rake ./lib/tasks/ops/backoffice.rake
+
 EXPOSE 3000
 EXPOSE 6042
 
