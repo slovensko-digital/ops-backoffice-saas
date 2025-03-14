@@ -4,9 +4,7 @@ image: "sd/ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>"
 
 servers:
   web:
-    # nginx should be started just after the initialization is done
-    # run `kamal zammad-init` first
-    cmd: "/ops-backoffice-nginx-entrypoint.sh"
+    cmd: "/opt/zammad_init_and_nginx.sh"
     # TODO might ditch the whole nginx when https://github.com/basecamp/kamal-proxy/issues/48 is implemented
     options:
       "add-host": host.docker.internal:host-gateway
@@ -22,6 +20,7 @@ proxy:
   healthcheck:
     path: /
     interval: 10
+    timeout: 90
 
 env: &env
   clear:
