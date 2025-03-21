@@ -41,6 +41,10 @@ env: &env
 
     POSTGRESQL_DB_CREATE: false
 
+    FQDN: <%= ENV.fetch('FQDN') %>
+    PRODUCT_NAME: Backoffice
+    ORGANIZATION: <%= ENV.fetch('ORGANIZATION') %>
+
   secret:
     - RAILS_MASTER_KEY
     - POSTGRESQL_PASS
@@ -48,6 +52,9 @@ env: &env
     - ADMIN_PASSWORD
     - ADMIN_FIRSTNAME
     - ADMIN_LASTNAME
+    - API_TOKEN
+    - GOOGLE_OAUTH2_CLIENT_ID
+    - GOOGLE_OAUTH2_CLIENT_SECRET
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"
