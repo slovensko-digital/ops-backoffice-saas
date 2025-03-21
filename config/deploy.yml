@@ -54,7 +54,6 @@ aliases:
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
   dbc: app exec --interactive --reuse "bin/rails dbconsole"
-  zammad_init: accessory exec railsserver -i --reuse "/docker-entrypoint.sh zammad-init"
 
 accessories:
   railsserver: &accessory-hack

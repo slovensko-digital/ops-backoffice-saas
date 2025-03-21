@@ -48,6 +48,9 @@ x-shared:
       LETSENCRYPT_HOST:
       LETSENCRYPT_EMAIL:
 
+    env_file:
+      - .env.sample
+
     build: .
 
     volumes:
@@ -85,7 +88,7 @@ services:
     command: ["zammad-init"]
     depends_on:
       - zammad-postgresql
-    restart: on-failure
+    restart: no
     user: 0:0
 
   zammad-memcached:
