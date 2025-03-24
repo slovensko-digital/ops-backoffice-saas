@@ -205,22 +205,17 @@ namespace :ops do
         updated_by_id: 1
       ) unless ObjectManager::Attribute.where(name: 'origin', object_lookup: ObjectLookup.by_name('Ticket')).exists?
 
-      # add investment_type to tickets
+      # add investment to tickets
       ObjectManager::Attribute.add(
         object: 'Ticket',
-        name: 'investment_type',
-        display: __('Financovanie'),
-        data_type: 'select',
+        name: 'investment',
+        display: __('Investičná akcia'),
+        data_type: 'boolean',
         data_option: {
-          options: [
-            { name: 'Investícia', value: 'investment' },
-            { name: 'Bežná údržba', value: 'maintenance' }
-          ],
-          customsort: 'on',
-          default: nil,
+          options: { false => 'nie', true => 'áno' },
+          default: false,
           null: true,
-          nulloption: true,
-          maxlength: 255,
+          relation: ''
         },
         active: true,
         screens: {
@@ -236,7 +231,7 @@ namespace :ops do
         position: 42,
         created_by_id: 1,
         updated_by_id: 1
-      ) unless ObjectManager::Attribute.where(name: 'investment_type', object_lookup: ObjectLookup.by_name('Ticket')).exists?
+      ) unless ObjectManager::Attribute.where(name: 'investment', object_lookup: ObjectLookup.by_name('Ticket')).exists?
 
       # add ops_likes_count to tickets
       ObjectManager::Attribute.add(
