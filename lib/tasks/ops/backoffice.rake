@@ -1,12 +1,12 @@
 # name, title, position, shown_on_creation
 READ_ONLY_ATTRIBUTES = [
-  ['ops_category', 'Kategória v triáži', 17, false],
+  ['ops_category', 'Kategória v Odkaze pre starostu', 17, false],
   ['ops_subcategory', 'Podkategória', 19, false],
   ['ops_subtype', 'Typ Problému', 20, false],
-  ['ops_state', 'Stav v triáži', 21, false],
+  ['ops_state', 'Stav v Odkaze pre starostu', 21, false],
   ['ops_issue_type', 'Typ dopytu', 22, false],
-  ['address_state', 'Adresa (Kraj)', 51, true],
-  ['address_county', 'Adresa (Okres)', 52, true],
+  ['address_state', 'Adresa (Kraj)', 51, false],
+  ['address_county', 'Adresa (Okres)', 52, false],
   ['address_city', 'Adresa (Mesto)', 53, true],
   ['address_city_district', 'Adresa (Mestská časť)', 54, true],
   ['address_suburb', 'Adresa (Miestna časť)', 55, true],
@@ -111,10 +111,6 @@ namespace :ops do
         Setting.set('auth_third_party_auto_link_at_inital_login', true)
         Setting.set('auth_third_party_no_create_user', true)
 
-        # TODO consider allowing customer to create tickets in Backoffice
-        Setting.set('customer_ticket_create', false) # disable WEB interface ticket creation
-        Setting.set('user_create_account', false) # Disable user creation via web interface
-
         Rails.logger.info "Turning on sidebar article attachments..."
         Setting.set('ui_ticket_zoom_sidebar_article_attachments', 'true')
 
@@ -194,8 +190,8 @@ namespace :ops do
         active: true,
         screens: {
           create_middle: {
-            'ticket.customer' => { shown: true },
-            'ticket.agent' => { shown: true }
+            'ticket.customer' => { shown: false },
+            'ticket.agent' => { shown: false }
           },
           edit: {
             'ticket.customer' => { shown: true },
@@ -207,10 +203,43 @@ namespace :ops do
         updated_by_id: 1
       ) unless ObjectManager::Attribute.where(name: 'origin', object_lookup: ObjectLookup.by_name('Ticket')).exists?
 
-      # add likes_count to tickets
+      # add investment_type to tickets
       ObjectManager::Attribute.add(
         object: 'Ticket',
-        name: 'likes_count',
+        name: 'investment_type',
+        display: __('Financovanie'),
+        data_type: 'select',
+        data_option: {
+          options: [
+            { name: 'Investícia', value: 'investment' },
+            { name: 'Bežná údržba', value: 'maintenance' }
+          ],
+          customsort: 'on',
+          default: nil,
+          null: true,
+          nulloption: true,
+          maxlength: 255,
+        },
+        active: true,
+        screens: {
+          create_middle: {
+            'ticket.customer' => { shown: false },
+            'ticket.agent' => { shown: false }
+          },
+          edit: {
+            'ticket.customer' => { shown: true },
+            'ticket.agent' => { shown: true }
+          }
+        },
+        position: 42,
+        created_by_id: 1,
+        updated_by_id: 1
+      ) unless ObjectManager::Attribute.where(name: 'investment_type', object_lookup: ObjectLookup.by_name('Ticket')).exists?
+
+      # add ops_likes_count to tickets
+      ObjectManager::Attribute.add(
+        object: 'Ticket',
+        name: 'ops_likes_count',
         display: __('Počet hlasov'),
         data_type: 'integer',
         data_option: {
@@ -235,10 +264,10 @@ namespace :ops do
       ObjectManager::Attribute.migration_execute
 
       # add text_module
-      TextModule.find_or_initialize_by(name: 'Verejný komentár pre odkazprestarostu').tap do |tm|
+      TextModule.find_or_initialize_by(name: 'OPS - Verejný komentár pre odkazprestarostu').tap do |tm|
         tm.keywords = "verejný, portal, ops, občan"
         tm.content = "[[ops portal]]"
-        tm.note = "Značka, ktorá v OPS tráži spôsobí automatické zverejnenie na portáli odkazu pre starostu."
+        tm.note = "Značka, ktorá v Odkaze pre starostu spôsobí automatické zverejnenie na portáli odkazu pre starostu."
         tm.active = true
         tm.updated_by_id = 1
         tm.created_by_id = 1
@@ -256,7 +285,7 @@ namespace :ops do
         }
         flow.active = true
         flow.stop_after_match = false
-        flow.changeable = true
+        flow.changeable = false
         flow.priority = 100
         flow.updated_by_id = 1
         flow.created_by_id = 1
@@ -273,7 +302,7 @@ namespace :ops do
         }
         flow.active = true
         flow.stop_after_match = false
-        flow.changeable = true
+        flow.changeable = false
         flow.priority = 500
         flow.updated_by_id = 1
         flow.created_by_id = 1
@@ -291,11 +320,11 @@ namespace :ops do
           "ticket.ops_subcategory" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_subtype" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_issue_type" => { "operator" => "hide", "hide" => "true" },
-          "ticket.likes_count" => { "operator" => "hide", "hide" => "true" }
+          "ticket.ops_likes_count" => { "operator" => "hide", "hide" => "true" }
         }
         flow.active = true
         flow.stop_after_match = false
-        flow.changeable = true
+        flow.changeable = false
         flow.priority = 100
         flow.updated_by_id = 1
         flow.created_by_id = 1
@@ -308,12 +337,30 @@ namespace :ops do
         flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
         flow.condition_selected = {}
         flow.perform = {
-          "ticket.likes_count" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_likes_count" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.ops_issue_type" => { "operator" => "set_readonly", "set_readonly" => "true" }
         }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "set_readonly", "set_readonly" => "true" }] }.to_h)
         flow.active = true
         flow.stop_after_match = false
-        flow.changeable = true # TODO consider hiding from end users
+        flow.changeable = false
+        flow.priority = 100
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      # hide state and group from ticket create_middle screen
+      CoreWorkflow.find_or_initialize_by(name: 'hide state and group from create_middle').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "create_middle" ] }
+        flow.condition_saved = {}
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.state_id" => { "operator" => "hide", "hide" => "true" },
+          "ticket.group_id" => { "operator" => "hide", "hide" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = true
         flow.priority = 100
         flow.updated_by_id = 1
         flow.created_by_id = 1
@@ -345,13 +392,14 @@ namespace :ops do
           owner_id: agent.id,
           state_id: 1,
           ops_state: "V riešení",
-          title: "Triáž: Poškodená dlažba chodníka",
+          title: "OPS: Poškodená dlažba chodníka",
           customer_id: customer.id,
+          origin: "ops",
           ops_category: "Komunikácie",
           ops_subcategory: "chodník",
           ops_subtype: "poškodená dlažba",
           ops_issue_type: "Podnet",
-          origin: "ops",
+          ops_likes_count: 13,
           address_state: nil,
           address_county: "",
           address_city: "Bratislava",
@@ -360,7 +408,6 @@ namespace :ops do
           address_village: "",
           address_road: "Vysoká",
           address_house_number: "7490/2A",
-          likes_count: 13,
         )
 
         ticket.articles.create!(
