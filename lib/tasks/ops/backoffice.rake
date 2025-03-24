@@ -7,10 +7,9 @@ READ_ONLY_ATTRIBUTES = [
   ['ops_issue_type', 'Typ dopytu', 22, false],
   ['address_state', 'Adresa (Kraj)', 51, false],
   ['address_county', 'Adresa (Okres)', 52, false],
-  ['address_city', 'Adresa (Mesto)', 53, true],
+  ['address_city', 'Adresa (Mesto / Obec)', 53, true],
   ['address_city_district', 'Adresa (Mestská časť)', 54, true],
   ['address_suburb', 'Adresa (Miestna časť)', 55, true],
-  ['address_village', 'Adresa (Obec)', 56, true],
   ['address_road', 'Adresa (Ulica)', 57, true],
   ['address_house_number', 'Adresa (Číslo domu)', 58, true],
 ]
@@ -135,6 +134,9 @@ namespace :ops do
         group.created_by_id = 1
       end
       incoming_group.save!
+
+      Rails.logger.info "Set Incoming group as default for new web tickets..."
+      Setting.set('customer_ticket_create_group_ids', [ incoming_group.id ])
 
       create_ops_user_role
       ops_tech_role = create_ops_tech_account_role
@@ -407,7 +409,6 @@ namespace :ops do
           address_city: "Bratislava",
           address_city_district: "okres Bratislava I",
           address_suburb: "Bratislava",
-          address_village: "",
           address_road: "Vysoká",
           address_house_number: "7490/2A",
         )
@@ -455,7 +456,6 @@ namespace :ops do
           address_city: "Bratislava",
           address_city_district: "okres Bratislava I",
           address_suburb: "Bratislava",
-          address_village: "",
           address_road: "Vysoká",
           address_house_number: "7490/2A"
         )
