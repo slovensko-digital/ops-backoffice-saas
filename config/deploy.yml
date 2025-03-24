@@ -4,9 +4,7 @@ image: "sd/ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>"
 
 servers:
   web:
-    # nginx should be started just after the initialization is done
-    # run `kamal zammad-init` first
-    cmd: "/ops-backoffice-nginx-entrypoint.sh"
+    cmd: "/opt/zammad_init_and_nginx.sh"
     # TODO might ditch the whole nginx when https://github.com/basecamp/kamal-proxy/issues/48 is implemented
     options:
       "add-host": host.docker.internal:host-gateway
@@ -22,6 +20,7 @@ proxy:
   healthcheck:
     path: /
     interval: 10
+    timeout: 90
 
 env: &env
   clear:
@@ -42,16 +41,26 @@ env: &env
 
     POSTGRESQL_DB_CREATE: false
 
+    FQDN: <%= ENV.fetch('FQDN') %>
+    PRODUCT_NAME: Backoffice
+    ORGANIZATION: <%= ENV.fetch('ORGANIZATION') %>
+
   secret:
     - RAILS_MASTER_KEY
     - POSTGRESQL_PASS
+    - ADMIN_EMAIL
+    - ADMIN_PASSWORD
+    - ADMIN_FIRSTNAME
+    - ADMIN_LASTNAME
+    - API_TOKEN
+    - GOOGLE_OAUTH2_CLIENT_ID
+    - GOOGLE_OAUTH2_CLIENT_SECRET
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
   dbc: app exec --interactive --reuse "bin/rails dbconsole"
-  zammad_init: accessory exec railsserver -i --reuse "/docker-entrypoint.sh zammad-init"
 
 accessories:
   railsserver: &accessory-hack

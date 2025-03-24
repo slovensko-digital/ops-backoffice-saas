@@ -1,0 +1,501 @@
+# name, title, position, shown_on_creation
+READ_ONLY_ATTRIBUTES = [
+  ['ops_category', 'Kategória v Odkaze pre starostu', 17, false],
+  ['ops_subcategory', 'Podkategória', 19, false],
+  ['ops_subtype', 'Typ Problému', 20, false],
+  ['ops_state', 'Stav v Odkaze pre starostu', 21, false],
+  ['ops_issue_type', 'Typ dopytu', 22, false],
+  ['address_state', 'Adresa (Kraj)', 51, false],
+  ['address_county', 'Adresa (Okres)', 52, false],
+  ['address_city', 'Adresa (Mesto / Obec)', 53, true],
+  ['address_city_district', 'Adresa (Mestská časť)', 54, true],
+  ['address_suburb', 'Adresa (Miestna časť)', 55, true],
+  ['address_road', 'Adresa (Ulica)', 57, true],
+  ['address_house_number', 'Adresa (Číslo domu)', 58, true],
+]
+
+
+class RequestMock
+  attr_accessor :remote_ip, :env
+  def initialize(remote_ip, env)
+    @remote_ip = remote_ip
+    @env = env
+  end
+end
+
+def setup_admin_user
+  admin_user_data = {
+    email: ENV.fetch('ADMIN_EMAIL'),
+    password: ENV.fetch('ADMIN_PASSWORD'),
+    firstname: ENV.fetch('ADMIN_FIRSTNAME'),
+    lastname: ENV.fetch('ADMIN_LASTNAME')
+  }
+
+  request = RequestMock.new('127.0.0.1', { 'HTTP_ACCEPT_LANGUAGE' => ENV.fetch('DEFAULT_LOCALE', 'sk') })
+  Service::User::AddFirstAdmin.new.execute(user_data: admin_user_data, request: request)
+end
+
+def setup_technical_user(role_id)
+  Rails.logger.info "Setting up technical user..."
+  params = {
+    "firstname":"Aplikácia",
+    "lastname":"Odkaz pre starostu",
+    "note":"",
+    "role_ids": [ role_id ],
+    "active":true,
+    "vip":false,
+    "id":"c-3",
+    "updated_by_id": "1",
+    "created_by_id": "1",
+  }
+  user = User.new(params)
+  user.associations_from_param(params)
+  user.save!
+
+  token = Token.create!(
+    action:     'api',
+    persistent: true,
+    user_id:    user.id,
+    name: "Token 2",
+    preferences: {"permission"=>["admin.user", "report", "ticket.agent"]}
+  )
+  token.token = ENV.fetch('API_TOKEN', SecureRandom.urlsafe_base64(48))
+  token.save!
+end
+
+def create_ops_user_role
+  Rails.logger.info "Create OPS User role..."
+  ops_user_role = Role.find_or_initialize_by(name: 'Portal User') do |role|
+    role.note = __('OPS Portal users.')
+    role.default_at_signup = false
+    role.preferences = {}
+    role.updated_by_id = 1
+    role.created_by_id = 1
+  end
+  ops_user_role.save!
+end
+
+def create_ops_tech_account_role
+  Rails.logger.info "Create OPS Tech Account role..."
+  ops_tech_account_role = Role.find_or_initialize_by(name: 'OPS Tech Account').tap do |role|
+    role.note = __('OPS tech account.')
+    role.active = true
+    role.updated_by_id = 1
+    role.created_by_id = 1
+  end
+  ops_tech_account_role.permission_grant('admin.user')
+  ops_tech_account_role.permission_grant('ticket.agent')
+  ops_tech_account_role.permission_grant('user_preferences.access_token')
+  ops_tech_account_role.save!
+  ops_tech_account_role
+end
+
+namespace :ops do
+  namespace :backoffice do
+    desc "Migrates backoffice environment"
+    task migrate: :environment do
+      next unless User.any?
+
+      unless User.count > 2
+        setup_admin_user
+
+        Rails.logger.info "Migrating backoffice environment..."
+        Rails.logger.info "Setting branding..."
+        Setting.set('fqdn', ENV.fetch('FQDN'))
+        Setting.set('product_name', ENV.fetch('PRODUCT_NAME'))
+        Setting.set('organization', ENV.fetch('ORGANIZATION'))
+
+        Rails.logger.info "Setting access control..."
+        Setting.set('api_password_access', false) # Disable password access to REST API
+        Setting.set('auth_third_party_auto_link_at_inital_login', true)
+        Setting.set('auth_third_party_no_create_user', true)
+
+        Rails.logger.info "Turning on sidebar article attachments..."
+        Setting.set('ui_ticket_zoom_sidebar_article_attachments', 'true')
+
+        Rails.logger.info "Destroying unused ticket states..."
+        Ticket::State.find_by(name: "merged").destroy
+      end
+
+      if ENV.fetch('GOOGLE_OAUTH2_CLIENT_ID', "").present? && ENV.fetch('GOOGLE_OAUTH2_CLIENT_SECRET', "").present?
+        Rails.logger.info "Setting up Google OAuth2..."
+        Setting.set("auth_google_oauth2", true)
+        Setting.set("auth_google_oauth2_credentials", {
+          "client_id"=>ENV.fetch('GOOGLE_OAUTH2_CLIENT_ID'),
+          "client_secret"=>ENV.fetch('GOOGLE_OAUTH2_CLIENT_SECRET')
+        })
+      end
+
+      Rails.logger.info "Create incoming group..."
+      incoming_group = Group.find_or_initialize_by(name: 'Incoming').tap do |group|
+        group.note = __('Incoming tickets group.')
+        group.active = true
+        group.updated_by_id = 1
+        group.created_by_id = 1
+      end
+      incoming_group.save!
+
+      Rails.logger.info "Set Incoming group as default for new web tickets..."
+      Setting.set('customer_ticket_create_group_ids', [ incoming_group.id ])
+
+      create_ops_user_role
+      ops_tech_role = create_ops_tech_account_role
+
+      setup_technical_user(ops_tech_role.id) unless User.count > 3
+
+      # add ops readonly attributes to ticket
+      READ_ONLY_ATTRIBUTES.each do |name, title, position, shown|
+        ObjectManager::Attribute.add(
+          object: 'Ticket',
+          name: name.dup,
+          display: __(title),
+          data_type: 'input',
+          data_option: {
+            type: 'text',
+            default: '',
+            null: true,
+            maxlength: 255,
+          },
+          active: true,
+          screens: {
+            create_middle: {
+              'ticket.customer' => { shown: shown },
+              'ticket.agent' => { shown: shown }
+            },
+            edit: {
+              'ticket.customer' => { shown: true },
+              'ticket.agent' => { shown: true }
+            }
+          },
+          position: position,
+          created_by_id: 1,
+          updated_by_id: 1,
+        )
+      end
+
+      # add origin to tickets
+      ObjectManager::Attribute.add(
+        object: 'Ticket',
+        name: 'origin',
+        display: __('Zdroj'),
+        data_type: 'select',
+        data_option: {
+          options: [
+            { name: 'Odkaz pre starostu', value: 'ops' }
+          ],
+          customsort: 'on',
+          default: nil,
+          null: true,
+          nulloption: true,
+          maxlength: 255,
+        },
+        active: true,
+        screens: {
+          create_middle: {
+            'ticket.customer' => { shown: false },
+            'ticket.agent' => { shown: false }
+          },
+          edit: {
+            'ticket.customer' => { shown: true },
+            'ticket.agent' => { shown: true }
+          }
+        },
+        position: 16,
+        created_by_id: 1,
+        updated_by_id: 1
+      ) unless ObjectManager::Attribute.where(name: 'origin', object_lookup: ObjectLookup.by_name('Ticket')).exists?
+
+      # add investment to tickets
+      ObjectManager::Attribute.add(
+        object: 'Ticket',
+        name: 'investment',
+        display: __('Investičná akcia'),
+        data_type: 'boolean',
+        data_option: {
+          options: { false => 'nie', true => 'áno' },
+          default: false,
+          null: true,
+          relation: ''
+        },
+        active: true,
+        screens: {
+          create_middle: {
+            'ticket.customer' => { shown: false },
+            'ticket.agent' => { shown: false }
+          },
+          edit: {
+            'ticket.customer' => { shown: true },
+            'ticket.agent' => { shown: true }
+          }
+        },
+        position: 42,
+        created_by_id: 1,
+        updated_by_id: 1
+      ) unless ObjectManager::Attribute.where(name: 'investment', object_lookup: ObjectLookup.by_name('Ticket')).exists?
+
+      # add ops_likes_count to tickets
+      ObjectManager::Attribute.add(
+        object: 'Ticket',
+        name: 'ops_likes_count',
+        display: __('Počet hlasov'),
+        data_type: 'integer',
+        data_option: {
+          "default" => nil, "min" => 0, "max" => 999999999, "null" => true, "options" => {}, "relation" => ""
+        },
+        active: true,
+        screens: {
+          edit: {
+            'ticket.agent' => { shown: true },
+            'ticket.customer' => { shown: true },
+          },
+          create_middle: {
+            'ticket.agent' => { shown: false },
+            'ticket.customer' => { shown: false },
+          }
+        },
+        position: 100,
+        created_by_id: 1,
+        updated_by_id: 1,
+      )
+
+      ObjectManager::Attribute.migration_execute
+
+      # add text_module
+      TextModule.find_or_initialize_by(name: 'OPS - Verejný komentár pre odkazprestarostu').tap do |tm|
+        tm.keywords = "verejný, portal, ops, občan"
+        tm.content = "[[ops portal]]"
+        tm.note = "Značka, ktorá v Odkaze pre starostu spôsobí automatické zverejnenie na portáli odkazu pre starostu."
+        tm.active = true
+        tm.updated_by_id = 1
+        tm.created_by_id = 1
+      end.save!
+
+      # hide some attributes everywhere
+      CoreWorkflow.find_or_initialize_by(name: 'hide state and county').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "create_middle", "edit" ] }
+        flow.condition_saved = {}
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.address_state" => { "operator" => "hide", "hide" => "true" },
+          "ticket.address_county" => { "operator" => "hide", "hide" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 100
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      # make origin readonly for all tickets
+      CoreWorkflow.find_or_initialize_by(name: 'ops - read-only origin').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "create_middle", "edit" ] }
+        flow.condition_saved = {}
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.origin" => { "operator" => "set_readonly", "set_readonly" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 500
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      # hide ops attributes from tickets where origin is not ops
+      CoreWorkflow.find_or_initialize_by(name: 'ops - hide ops attributes for non-ops tickets').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "create_middle", "edit" ] }
+        flow.condition_saved = { "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] } }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_state" => { "operator" => "hide", "hide" => "true" },
+          "ticket.ops_category" => { "operator" => "hide", "hide" => "true" },
+          "ticket.ops_subcategory" => { "operator" => "hide", "hide" => "true" },
+          "ticket.ops_subtype" => { "operator" => "hide", "hide" => "true" },
+          "ticket.ops_issue_type" => { "operator" => "hide", "hide" => "true" },
+          "ticket.ops_likes_count" => { "operator" => "hide", "hide" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 100
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      # make ops attributes read-only
+      CoreWorkflow.find_or_initialize_by(name: 'ops - read-only ticket attributes').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "create_middle", "edit" ] }
+        flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_likes_count" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_issue_type" => { "operator" => "set_readonly", "set_readonly" => "true" }
+        }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "set_readonly", "set_readonly" => "true" }] }.to_h)
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 100
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      # hide state and group from customer ticket create_middle screen
+      CoreWorkflow.find_or_initialize_by(name: 'hide state and group from create_middle').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "create_middle" ] }
+        flow.condition_saved = {}
+        flow.condition_selected = {
+          "session.role_ids" => { "operator" => "is", "value" => [ Role.find_by(name: "Customer").id ] }
+        },
+        flow.perform = {
+          "ticket.state_id" => { "operator" => "hide", "hide" => "true" },
+          "ticket.group_id" => { "operator" => "hide", "hide" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = true
+        flow.priority = 100
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      # add sample tickets
+      if ENV.fetch('CREATE_SAMPLE_TICKET', false)
+        Rails.logger.info "Creating sample tickets..."
+
+        UserInfo.current_user_id = User.last.id
+
+        customer = User.create!(
+          email: "example.portal.customer@localhost",
+          firstname: "Portal Customer",
+          lastname: "Example",
+          role_ids: [Role.find_by(name: 'Portal User').id]
+        )
+
+        agent = User.create!(
+          email: "example.agent@localhost",
+          firstname: "Agent",
+          lastname: "Example",
+          role_ids: [Role.find_by(name: 'Agent').id],
+          group_ids: [incoming_group.id],
+        )
+
+        ticket = Ticket.create!(
+          group_id: incoming_group.id,
+          owner_id: agent.id,
+          state_id: 1,
+          ops_state: "V riešení",
+          title: "OPS: Poškodená dlažba chodníka",
+          customer_id: customer.id,
+          origin: "ops",
+          ops_category: "Komunikácie",
+          ops_subcategory: "chodník",
+          ops_subtype: "poškodená dlažba",
+          ops_issue_type: "Podnet",
+          ops_likes_count: 13,
+          address_state: nil,
+          address_county: "",
+          address_city: "Bratislava",
+          address_city_district: "okres Bratislava I",
+          address_suburb: "Bratislava",
+          address_road: "Vysoká",
+          address_house_number: "7490/2A",
+        )
+
+        ticket.articles.create!(
+          type_id: Ticket::Article::Type.find_by(name: "web").id,
+          sender_id: Ticket::Article::Sender.find_by(name: "Customer").id,
+          content_type: "text/plain",
+          body: "Chodník je poškodený, dlažba je rozbitá a nerovná.",
+          internal: false,
+          origin_by_id: customer.id,
+        )
+
+        ticket.articles.create!(
+          type_id: Ticket::Article::Type.find_by(name: "note").id,
+          sender_id: Ticket::Article::Sender.find_by(name: "Agent").id,
+          content_type: "text/plain",
+          body: "Odpoveď agenta",
+          internal: false,
+          origin_by_id: agent.id,
+          created_by_id: agent.id,
+          updated_by_id: agent.id,
+        )
+
+        ticket.articles.create!(
+          type_id: Ticket::Article::Type.find_by(name: "note").id,
+          sender_id: Ticket::Article::Sender.find_by(name: "Agent").id,
+          content_type: "text/plain",
+          body: "Interná odpoveď agenta",
+          internal: true,
+          origin_by_id: agent.id,
+          created_by_id: agent.id,
+          updated_by_id: agent.id,
+        )
+
+        ticket = Ticket.create!(
+          group_id: incoming_group.id,
+          owner_id: agent.id,
+          state_id: 1,
+          title: "Custom podnet: Nepokosená tráva",
+          customer_id: customer.id,
+          origin: nil,
+          address_state: nil,
+          address_county: "",
+          address_city: "Bratislava",
+          address_city_district: "okres Bratislava I",
+          address_suburb: "Bratislava",
+          address_road: "Vysoká",
+          address_house_number: "7490/2A"
+        )
+
+        ticket.articles.create!(
+          type_id: Ticket::Article::Type.find_by(name: "web").id,
+          sender_id: Ticket::Article::Sender.find_by(name: "Customer").id,
+          content_type: "text/plain",
+          body: "Tráva na verejnom priestranstve nie je pokosená.",
+          internal: false,
+          origin_by_id: customer.id,
+        )
+
+        ticket.articles.create!(
+          type_id: Ticket::Article::Type.find_by(name: "note").id,
+          sender_id: Ticket::Article::Sender.find_by(name: "Agent").id,
+          content_type: "text/plain",
+          body: "Odpoveď agenta",
+          internal: false,
+          origin_by_id: agent.id,
+          created_by_id: agent.id,
+          updated_by_id: agent.id,
+        )
+
+        ticket.articles.create!(
+          type_id: Ticket::Article::Type.find_by(name: "note").id,
+          sender_id: Ticket::Article::Sender.find_by(name: "Agent").id,
+          content_type: "text/plain",
+          body: "Interná odpoveď agenta",
+          internal: true,
+          origin_by_id: agent.id,
+          created_by_id: agent.id,
+          updated_by_id: agent.id,
+        )
+
+        UserInfo.current_user_id = 1
+      end
+    end
+  end
+end
+
+Rake::Task['db:migrate'].enhance do
+  Rake::Task['ops:backoffice:migrate'].execute
+end
+
+Rake::Task['db:seed'].enhance do
+  Rake::Task['ops:backoffice:migrate'].execute
+end
