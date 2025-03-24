@@ -348,12 +348,14 @@ namespace :ops do
         flow.created_by_id = 1
       end.save!
 
-      # hide state and group from ticket create_middle screen
+      # hide state and group from customer ticket create_middle screen
       CoreWorkflow.find_or_initialize_by(name: 'hide state and group from create_middle').tap do |flow|
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "create_middle" ] }
         flow.condition_saved = {}
-        flow.condition_selected = {}
+        flow.condition_selected = {
+          "session.role_ids" => { "operator" => "is", "value" => [ Role.find_by(name: "Customer").id ] }
+        },
         flow.perform = {
           "ticket.state_id" => { "operator" => "hide", "hide" => "true" },
           "ticket.group_id" => { "operator" => "hide", "hide" => "true" }
