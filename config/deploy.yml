@@ -1,3 +1,6 @@
+x-load-env:
+  - "<% require 'dotenv'; Dotenv.load('.env.' + ENV.fetch('KAMAL_DESTINATION') + '.' + ENV.fetch('BACKOFFICE_PREFIX')) %>"
+
 service: "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>"
 
 image: "sd/ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>"
@@ -13,6 +16,8 @@ servers:
     cmd: "zammad-scheduler"
     options:
       "add-host": host.docker.internal:host-gateway
+
+deploy_timeout: 90
 
 proxy:
   ssl: true
@@ -30,6 +35,7 @@ env: &env
     POSTGRESQL_DB: "ops_backoffice_<%= ENV.fetch('BACKOFFICE_PREFIX').gsub(/-/, '_') %>_staging"
     POSTGRESQL_HOST: host.docker.internal
     POSTGRESQL_USER: "ops_backoffice_<%= ENV.fetch('BACKOFFICE_PREFIX').gsub(/-/, '_') %>"
+    POSTGRESQL_OPTIONS: "?pool=50"
     RAILS_LOG_TO_STDOUT: true
     RAILS_SERVE_STATIC_FILES: true
     REDIS_URL: "redis://ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>-redis:6379/1"
@@ -41,8 +47,9 @@ env: &env
 
     POSTGRESQL_DB_CREATE: false
 
+    HTTP_TYPE: "https"
     FQDN: <%= ENV.fetch('FQDN') %>
-    PRODUCT_NAME: Backoffice
+    PRODUCT_NAME: <%= ENV.fetch('PRODUCT_NAME') %>
     ORGANIZATION: <%= ENV.fetch('ORGANIZATION') %>
 
   secret:
@@ -57,10 +64,10 @@ env: &env
     - GOOGLE_OAUTH2_CLIENT_SECRET
 
 aliases:
-  console: app exec --interactive --reuse "bin/rails console"
+  console: app exec --interactive --reuse "/docker-entrypoint.sh bin/rails console"
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
-  dbc: app exec --interactive --reuse "bin/rails dbconsole"
+  dbc: app exec --interactive --reuse "/docker-entrypoint.sh bin/rails dbconsole"
 
 accessories:
   railsserver: &accessory-hack
