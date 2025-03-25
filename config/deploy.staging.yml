@@ -1,6 +1,3 @@
-x-load-env:
-  - "<% require 'dotenv'; Dotenv.load('.env.staging.' + ENV.fetch('BACKOFFICE_PREFIX')) %>"
-
 servers:
   web:
     hosts:
