@@ -104,6 +104,7 @@ namespace :ops do
         Setting.set('fqdn', ENV.fetch('FQDN'))
         Setting.set('product_name', ENV.fetch('PRODUCT_NAME'))
         Setting.set('organization', ENV.fetch('ORGANIZATION'))
+        Setting.set('http_type', ENV.fetch('HTTP_TYPE', 'http'))
 
         Rails.logger.info "Setting access control..."
         Setting.set('api_password_access', false) # Disable password access to REST API
