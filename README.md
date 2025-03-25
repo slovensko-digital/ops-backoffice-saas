@@ -33,5 +33,5 @@ export BACKOFFICE_PREFIX=staremesto-ba
 kamal build push -d staging
 kamal accessory boot -d staging all
 kamal zammad_init -d staging
-kamal deploy -d staging
+kamal deploy -P -d staging
 ```
