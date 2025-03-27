@@ -523,6 +523,35 @@ namespace :ops do
         trigger.created_by_id = 1
       end.save!
 
+      # add trigger for sending public agent article via email
+      Trigger.find_or_initialize_by(name: 'OPS - email public agent article to customer').tap do |trigger|
+        trigger.condition = {
+          "article.action" => { "operator" => "is", "value" => "create" },
+          "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
+          "article.sender_id" => { "operator" => "is", "value" => [ Ticket::Article::Sender.lookup(name: 'Agent').id ] },
+          "article.internal" => { "operator" => "is", "value" => [ "false" ] },
+          "customer.email" => { "operator" => "contains", "value" => "@" }
+        }
+        trigger.perform = {
+          "notification.email" => {
+            "body" => "\#{created_article.body_as_html}",
+            "internal" => "false",
+            "recipient" => [ "ticket_customer" ],
+            "subject" => "Odpoveď na - \#{ticket.title}",
+            "include_attachments" => "true"
+          }
+        }
+        trigger.disable_notification = true
+        trigger.localization = "system"
+        trigger.timezone = "system"
+        trigger.note = ""
+        trigger.activator = "action"
+        trigger.execution_condition_mode = "selective"
+        trigger.active = true
+        trigger.updated_by_id = 1
+        trigger.created_by_id = 1
+      end.save!
+
       # add sample tickets
       if ENV['CREATE_SAMPLE_TICKET'] == "true" && Ticket.count < 2
         Rails.logger.info "Creating sample tickets..."
