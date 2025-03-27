@@ -49,7 +49,13 @@ x-shared:
       LETSENCRYPT_EMAIL:
 
     env_file:
-      - .env.sample
+      - path: .env.sample
+        required: false
+      - path: .env
+        required: false
+
+    extra_hosts:
+      - host.docker.internal:host-gateway
 
     build: .
 
@@ -102,7 +108,7 @@ services:
     expose:
       - "${NGINX_PORT:-8080}"
     ports:
-      - "${NGINX_EXPOSE_PORT:-8080}:${NGINX_PORT:-8080}"
+      - "${NGINX_EXPOSE_PORT:-8081}:${NGINX_PORT:-8080}"
     depends_on:
       - zammad-railsserver
 
