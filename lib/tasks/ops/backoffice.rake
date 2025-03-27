@@ -355,7 +355,6 @@ namespace :ops do
         flow.condition_saved = { "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] } }
         flow.condition_selected = {}
         flow.perform = {
-          "ticket.ops_state" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_category" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_subcategory" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_subtype" => { "operator" => "hide", "hide" => "true" },
@@ -426,6 +425,92 @@ namespace :ops do
         flow.priority = 100
         flow.updated_by_id = 1
         flow.created_by_id = 1
+      end.save!
+
+      # add ticket.updated webhook
+      Webhook.find_or_initialize_by(name: 'OPS - ticket.updated').tap do |webhook|
+        webhook.endpoint = File.join(ENV.fetch('OPS_CONNECTOR_URL'), 'connector/backoffice/webhook')
+        webhook.signature_token = ENV.fetch('WEBHOOK_SECRET')
+        webhook.ssl_verify = ENV.fetch('OPS_CONNECTOR_URL').start_with?('https')
+        webhook.note = "Oznámenie zmeny v tickete pre Odkaz pre starostu."
+        webhook.customized_payload = true
+        webhook.custom_payload = {
+          "type" => "ticket.updated",
+          "timestamp" => "\#{ticket.updated_at}",
+          "data" => {
+            "tenant_id" => ENV.fetch('WEBHOOK_TENANT_ID'),
+            "ticket_id" => "\#{ticket.id}"
+          }
+        }.to_json
+        webhook.preferences = {}
+        webhook.active = true
+        webhook.updated_by_id = 1
+        webhook.created_by_id = 1
+      end.save!
+
+      # add article.created webhook
+      Webhook.find_or_initialize_by(name: 'OPS - article.created').tap do |webhook|
+        webhook.endpoint = File.join(ENV.fetch('OPS_CONNECTOR_URL'), 'connector/backoffice/webhook')
+        webhook.signature_token = ENV.fetch('WEBHOOK_SECRET')
+        webhook.ssl_verify = ENV.fetch('OPS_CONNECTOR_URL').start_with?('https')
+        webhook.note = "Oznámenie zmeny v article pre Odkaz pre starostu."
+        webhook.customized_payload = true
+        webhook.custom_payload = {
+          "type" => "article.created",
+          "timestamp" => "\#{article.created_at}",
+          "data" => {
+            "tenant_id" => ENV.fetch('WEBHOOK_TENANT_ID'),
+            "ticket_id" => "\#{ticket.id}",
+            "article_id" => "\#{article.id}"
+          }
+        }.to_json
+        webhook.preferences = {}
+        webhook.active = true
+        webhook.updated_by_id = 1
+        webhook.created_by_id = 1
+      end.save!
+
+      # add trigger for ticket.updated
+      Trigger.find_or_initialize_by(name: 'OPS - ticket updated').tap do |trigger|
+        trigger.condition = {
+          "operator" => "AND",
+          "conditions" => [
+            { "name" => "ticket.origin", "operator" => "is", "value" => ["ops"] },
+            { "name" => "ticket.ops_state", "operator" => "has changed", "value" => [] }
+          ]
+        }
+        trigger.perform = { "notification.webhook" => { "webhook_id" => Webhook.find_by(name: 'OPS - ticket.updated').id } }
+        trigger.disable_notification = true
+        trigger.localization = "system"
+        trigger.timezone = "system"
+        trigger.note = ""
+        trigger.activator = "action"
+        trigger.execution_condition_mode = "selective"
+        trigger.active = true
+        trigger.updated_by_id = 1
+        trigger.created_by_id = 1
+      end.save!
+
+      # add trigger for article.created
+      Trigger.find_or_initialize_by(name: 'OPS - article created').tap do |trigger|
+        trigger.condition = {
+          "operator" => "AND",
+          "conditions" => [
+            { "name" => "ticket.origin", "operator" => "is", "value" => ["ops"] },
+            { "name" => "article.type_id", "operator" => "is", "value" => [Ticket::Article::Type.find_by(name: "note").id] },
+            { "name" => "article.internal", "operator" => "is", "value" => ["false"] }
+          ]
+        }
+        trigger.perform = { "notification.webhook" => { "webhook_id" => Webhook.find_by(name: 'OPS - article.created').id } }
+        trigger.disable_notification = true
+        trigger.localization = "system"
+        trigger.timezone = "system"
+        trigger.note = ""
+        trigger.activator = "action"
+        trigger.execution_condition_mode = "selective"
+        trigger.active = true
+        trigger.updated_by_id = 1
+        trigger.created_by_id = 1
       end.save!
 
       # add sample tickets
