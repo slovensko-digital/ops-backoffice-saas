@@ -49,7 +49,10 @@ x-shared:
       LETSENCRYPT_EMAIL:
 
     env_file:
-      - .env.sample
+      - path: .env.sample
+        required: false
+      - path: .env
+        required: false
 
     build: .
 
