@@ -3,7 +3,6 @@ READ_ONLY_ATTRIBUTES = [
   ['ops_category', 'Kategória v Odkaze pre starostu', 17, false],
   ['ops_subcategory', 'Podkategória', 19, false],
   ['ops_subtype', 'Typ Problému', 20, false],
-  ['ops_state', 'Stav v Odkaze pre starostu', 21, false],
   ['ops_issue_type', 'Typ dopytu', 22, false],
   ['address_state', 'Adresa (Kraj)', 51, false],
   ['address_county', 'Adresa (Okres)', 52, false],
@@ -13,7 +12,6 @@ READ_ONLY_ATTRIBUTES = [
   ['address_road', 'Adresa (Ulica)', 57, true],
   ['address_house_number', 'Adresa (Číslo domu)', 58, true],
 ]
-
 
 class RequestMock
   attr_accessor :remote_ip, :env
@@ -259,6 +257,50 @@ namespace :ops do
         updated_by_id: 1,
       )
 
+      # rm old ops_state from tickets
+      if ObjectManager::Attribute.where(name: 'ops_state', data_type: 'input', object_lookup: ObjectLookup.by_name('Ticket')).exists?
+        ObjectManager::Attribute.remove(object: 'Ticket', name: 'ops_state')
+        ObjectManager::Attribute.migration_execute
+      end
+
+      # add ops_state to tickets
+      ObjectManager::Attribute.add(
+        object: 'Ticket',
+        name: 'ops_state',
+        display: __('Stav v Odkaze pre starostu'),
+        data_type: 'select',
+        data_option: {
+          options: {
+            "waiting" => "Čakajúci",
+            "rejected" => "Zamietnutý",
+            "sent_to_responsible" => "Zaslaný zodpovednému",
+            "in_progress" => "V riešení",
+            "marked_as_resolved" => "Označený za vyriešený",
+            "resolved" => "Vyriešený",
+            "unresolved" => "Neriešený",
+            "closed" => "Uzavretý",
+            "referred" => "Odstúpený",
+          },
+          default: 'waiting',
+          nulloption: true,
+          null: true,
+        },
+        active: true,
+        screens: {
+          create_middle: {
+            'ticket.agent' => { shown: false },
+            'ticket.customer' => { shown: false },
+          },
+          edit: {
+            'ticket.agent' => { shown: true },
+            'ticket.customer' => { shown: true },
+          }
+        },
+        position: 39,
+        created_by_id: 1,
+        updated_by_id: 1
+      )
+
       ObjectManager::Attribute.migration_execute
 
       # add text_module
@@ -318,7 +360,8 @@ namespace :ops do
           "ticket.ops_subcategory" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_subtype" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_issue_type" => { "operator" => "hide", "hide" => "true" },
-          "ticket.ops_likes_count" => { "operator" => "hide", "hide" => "true" }
+          "ticket.ops_likes_count" => { "operator" => "hide", "hide" => "true" },
+          "ticket.ops_state" => { "operator" => "hide", "hide" => "true" }
         }
         flow.active = true
         flow.stop_after_match = false
@@ -366,8 +409,27 @@ namespace :ops do
         flow.created_by_id = 1
       end.save!
 
+      # allow only certain ops_states to be selected
+      CoreWorkflow.find_or_initialize_by(name: 'ops - only allow certain ops_states').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
+        flow.condition_selected = {}
+        flow.perform = { "ticket.ops_state" => {
+          "operator" => [ "set_fixed_to", "set_mandatory" ],
+          "set_fixed_to" => [ "sent_to_responsible", "in_progress", "marked_as_resolved", "referred" ],
+          "set_mandatory" => "true"
+        } }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 100
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
       # add sample tickets
-      if ENV.fetch('CREATE_SAMPLE_TICKET', false)
+      if ENV.fetch('CREATE_SAMPLE_TICKET', false) && Ticket.count < 2
         Rails.logger.info "Creating sample tickets..."
 
         UserInfo.current_user_id = User.last.id
