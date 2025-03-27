@@ -293,7 +293,7 @@ namespace :ops do
           },
           edit: {
             'ticket.agent' => { shown: true },
-            'ticket.customer' => { shown: true },
+            'ticket.customer' => { shown: false },
           }
         },
         position: 39,
@@ -514,7 +514,7 @@ namespace :ops do
       end.save!
 
       # add sample tickets
-      if ENV.fetch('CREATE_SAMPLE_TICKET', false) && Ticket.count < 2
+      if ENV['CREATE_SAMPLE_TICKET'] == "true" && Ticket.count < 2
         Rails.logger.info "Creating sample tickets..."
 
         UserInfo.current_user_id = User.last.id
