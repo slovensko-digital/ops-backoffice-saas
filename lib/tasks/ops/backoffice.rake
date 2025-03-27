@@ -11,6 +11,7 @@ READ_ONLY_ATTRIBUTES = [
   ['address_suburb', 'Adresa (Miestna časť)', 55, true],
   ['address_road', 'Adresa (Ulica)', 57, true],
   ['address_house_number', 'Adresa (Číslo domu)', 58, true],
+  ['address_postalcode', 'Adresa (PSČ)', 59, true],
 ]
 
 class RequestMock
@@ -564,6 +565,7 @@ namespace :ops do
           address_suburb: "Bratislava",
           address_road: "Vysoká",
           address_house_number: "7490/2A",
+          address_postcode: "811 06",
         )
 
         ticket.articles.create!(
@@ -610,7 +612,8 @@ namespace :ops do
           address_city_district: "okres Bratislava I",
           address_suburb: "Bratislava",
           address_road: "Vysoká",
-          address_house_number: "7490/2A"
+          address_house_number: "7490/2A",
+          address_postcode: "811 06",
         )
 
         ticket.articles.create!(
