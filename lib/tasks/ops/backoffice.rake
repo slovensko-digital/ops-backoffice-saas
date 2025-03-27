@@ -88,6 +88,14 @@ def create_ops_tech_account_role
   ops_tech_account_role
 end
 
+def setup_elastic
+  Rails.logger.info "Setting up Elasticsearch..."
+  Setting.set('es_url', "#{ENV.fetch('ELASTICSEARCH_SCHEMA')}://#{ENV.fetch('ELASTICSEARCH_HOST')}:#{ENV.fetch('ELASTICSEARCH_PORT')}")
+  Setting.set('es_user', ENV.fetch('ZAMMAD_ELASTICSEARCH_USER'))
+  Setting.set('es_password', ENV.fetch('ZAMMAD_ELASTICSEARCH_PASSWORD'))
+  Setting.set('es_index', ENV.fetch('ELASTICSEARCH_NAMESPACE'))
+end
+
 namespace :ops do
   namespace :backoffice do
     desc "Migrates backoffice environment"
@@ -136,6 +144,8 @@ namespace :ops do
 
       Rails.logger.info "Set Incoming group as default for new web tickets..."
       Setting.set('customer_ticket_create_group_ids', [ incoming_group.id ])
+
+      setup_elastic if ENV['ELASTICSEARCH_ENABLED'] == 'true'
 
       create_ops_user_role
       ops_tech_role = create_ops_tech_account_role
