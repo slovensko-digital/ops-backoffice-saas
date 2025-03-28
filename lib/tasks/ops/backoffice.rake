@@ -523,6 +523,57 @@ namespace :ops do
         trigger.created_by_id = 1
       end.save!
 
+      # add trigger for more than 10 votes (allow user changes)
+      Trigger.find_or_create_by!(name: 'OPS - viac ako 10 hlasov') do |trigger|
+        trigger.condition = {
+          "ticket.ops_likes_count" => { "operator" => "after (absolute)", "value" => 10 },
+          "ticket.tags" => { "operator" => "contains one not", "value" => "10 hlasov" }
+        }
+        trigger.perform = {
+          "article.note" => {
+            "body" => "Dopyt dosiahol na portáli Odkaz pre starostu už 10 hlasov.",
+            "internal" => "true",
+            "subject" => "Dopyt dosiahol 10 hlasov"
+          },
+          "ticket.tags" => { "operator" => "add", "value" => "10 hlasov" }
+        }
+        trigger.disable_notification = true
+        trigger.localization = "system"
+        trigger.timezone = "system"
+        trigger.note = ""
+        trigger.activator = "action"
+        trigger.execution_condition_mode = "selective"
+        trigger.active = true
+        trigger.updated_by_id = 1
+        trigger.created_by_id = 1
+      end
+
+      # add trigger for more than 100 votes (allow user changes)
+      Trigger.find_or_create_by!(name: 'OPS - viac ako 100 hlasov') do |trigger|
+        trigger.condition = {
+          "ticket.ops_likes_count" => { "operator" => "after (absolute)", "value" => 100 },
+          "ticket.tags" => { "operator" => "contains one not", "value" => "100 hlasov" }
+        }
+        trigger.perform = {
+          "article.note" => {
+            "body" => "Dopyt dosiahol na portáli Odkaz pre starostu už 100 hlasov.",
+            "internal" => "true",
+            "subject" => "Dopyt dosiahol 100 hlasov"
+          },
+          "ticket.tags" => { "operator" => "add", "value" => "100 hlasov" },
+          "ticket.priority_id"=>{"value"=>"3"}
+        }
+        trigger.disable_notification = true
+        trigger.localization = "system"
+        trigger.timezone = "system"
+        trigger.note = ""
+        trigger.activator = "action"
+        trigger.execution_condition_mode = "selective"
+        trigger.active = true
+        trigger.updated_by_id = 1
+        trigger.created_by_id = 1
+      end
+
       # add trigger for sending public agent article via email
       Trigger.find_or_initialize_by(name: 'OPS - email public agent article to customer').tap do |trigger|
         trigger.condition = {
