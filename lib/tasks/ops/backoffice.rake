@@ -592,6 +592,16 @@ namespace :ops do
             "subject" => "Odpoveď na - \#{ticket.title}",
             "include_attachments" => "true"
           }
+        }
+        trigger.disable_notification = true
+        trigger.localization = "system"
+        trigger.timezone = "system"
+        trigger.note = ""
+        trigger.activator = "action"
+        trigger.execution_condition_mode = "selective"
+        trigger.active = true
+        trigger.updated_by_id = 1
+        trigger.created_by_id = 1
       end.save!
 
       # add sample tickets
