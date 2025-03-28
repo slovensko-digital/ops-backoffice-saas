@@ -69,8 +69,8 @@ def create_ops_user_roles
   end
   ops_user_role.save!
 
-  Rails.logger.info "Create Agent OPS role..."
-  agent_ops_role = Role.find_or_initialize_by(name: 'Agent OPS').tap do |role|
+  Rails.logger.info "Create Správca podnetov pre OPS role..."
+  agent_ops_role = Role.find_or_initialize_by(name: 'Správca podnetov pre OPS').tap do |role|
     role.note = __('Agent Odkazu pre starostu.')
     role.active = true
     role.updated_by_id = 1
@@ -450,12 +450,12 @@ namespace :ops do
         flow.created_by_id = 1
       end.save!
 
-      # allow Agent OPS to edit ops attributes ops_state and ops_responsible_subject
-      CoreWorkflow.find_or_initialize_by(name: 'OPS - povoliť role Agent OPS meniť stav a zodpovedný subjekt pre Odkaz pre starostu').tap do |flow|
+      # allow Správca podnetov pre OPS to edit ops attributes ops_state and ops_responsible_subject
+      CoreWorkflow.find_or_initialize_by(name: 'OPS - povoliť role Správca podnetov pre OPS meniť stav a zodpovedný subjekt pre Odkaz pre starostu').tap do |flow|
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "edit" ] }
         flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
-        flow.condition_selected = { "session.role_ids" => { "operator" => "is", "value" => [ Role.find_by(name: "Agent OPS").id ] } }
+        flow.condition_selected = { "session.role_ids" => { "operator" => "is", "value" => [ Role.find_by(name: "Správca podnetov pre OPS").id ] } }
         flow.perform = {
           "ticket.ops_state" => { "operator" => "unset_readonly", "unset_readonly" => "true" },
           "ticket.ops_responsible_subject" => { "operator" => "unset_readonly", "unset_readonly" => "true" }
@@ -659,7 +659,7 @@ namespace :ops do
           email: "example.agent@localhost",
           firstname: "Agent",
           lastname: "Example",
-          role_ids: [Role.find_by(name: 'Agent').id, Role.find_by(name: 'Agent OPS').id],
+          role_ids: [Role.find_by(name: 'Agent').id, Role.find_by(name: 'Správca podnetov pre OPS').id],
           group_ids: [incoming_group.id],
         )
 
