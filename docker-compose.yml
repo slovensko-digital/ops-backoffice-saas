@@ -28,7 +28,7 @@ x-shared:
       ELASTICSEARCH_NAMESPACE:
       ELASTICSEARCH_REINDEX:
       ELASTICSEARCH_SSL_VERIFY:
-      NGINX_PORT: 8090
+      NGINX_PORT: 8080
       NGINX_CLIENT_MAX_BODY_SIZE:
       NGINX_SERVER_NAME:
       NGINX_SERVER_SCHEME:
@@ -106,9 +106,9 @@ services:
     <<: *zammad-service
     command: ["zammad-nginx"]
     expose:
-      - "${NGINX_PORT:-8090}"
+      - "${NGINX_PORT:-8080}"
     ports:
-      - "${NGINX_EXPOSE_PORT:-8090}:${NGINX_PORT:-8090}"
+      - "${NGINX_EXPOSE_PORT:-8081}:${NGINX_PORT:-8080}"
     depends_on:
       - zammad-railsserver
 
