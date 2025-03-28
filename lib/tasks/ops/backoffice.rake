@@ -4,12 +4,9 @@ READ_ONLY_ATTRIBUTES = [
   ['ops_subcategory', 'Podkategória', 19, false],
   ['ops_subtype', 'Typ Problému', 20, false],
   ['ops_issue_type', 'Typ dopytu', 22, false],
-  ['address_state', 'Adresa (Kraj)', 51, false],
-  ['address_county', 'Adresa (Okres)', 52, false],
-  ['address_city', 'Adresa (Mesto / Obec)', 53, true],
-  ['address_city_district', 'Adresa (Mestská časť)', 54, true],
-  ['address_suburb', 'Adresa (Miestna časť)', 55, true],
-  ['address_road', 'Adresa (Ulica)', 57, true],
+  ['address_municipality', 'Adresa (Mesto / Obec)', 53, true],
+  ['address_municipality_district', 'Adresa (Mestská časť)', 54, true],
+  ['address_street', 'Adresa (Ulica)', 57, true],
   ['address_house_number', 'Adresa (Číslo domu)', 58, true],
 ]
 
@@ -323,24 +320,6 @@ namespace :ops do
         tm.created_by_id = 1
       end.save!
 
-      # hide some attributes everywhere
-      CoreWorkflow.find_or_initialize_by(name: 'hide state and county').tap do |flow|
-        flow.object = "Ticket"
-        flow.preferences = { "screen" => [ "create_middle", "edit" ] }
-        flow.condition_saved = {}
-        flow.condition_selected = {}
-        flow.perform = {
-          "ticket.address_state" => { "operator" => "hide", "hide" => "true" },
-          "ticket.address_county" => { "operator" => "hide", "hide" => "true" }
-        }
-        flow.active = true
-        flow.stop_after_match = false
-        flow.changeable = false
-        flow.priority = 100
-        flow.updated_by_id = 1
-        flow.created_by_id = 1
-      end.save!
-
       # make origin readonly for all tickets
       CoreWorkflow.find_or_initialize_by(name: 'ops - read-only origin').tap do |flow|
         flow.object = "Ticket"
@@ -638,12 +617,9 @@ namespace :ops do
           ops_subtype: "poškodená dlažba",
           ops_issue_type: "Podnet",
           ops_likes_count: 13,
-          address_state: nil,
-          address_county: "",
-          address_city: "Bratislava",
-          address_city_district: "okres Bratislava I",
-          address_suburb: "Bratislava",
-          address_road: "Vysoká",
+          address_municipality: "Bratislava",
+          address_municipality_district: "okres Bratislava I",
+          address_street: "Vysoká",
           address_house_number: "7490/2A",
         )
 
@@ -685,12 +661,9 @@ namespace :ops do
           title: "Custom podnet: Nepokosená tráva",
           customer_id: customer.id,
           origin: nil,
-          address_state: nil,
-          address_county: "",
-          address_city: "Bratislava",
-          address_city_district: "okres Bratislava I",
-          address_suburb: "Bratislava",
-          address_road: "Vysoká",
+          address_municipality: "Bratislava",
+          address_municipality_district: "okres Bratislava I",
+          address_street: "Vysoká",
           address_house_number: "7490/2A"
         )
 
