@@ -6,8 +6,8 @@ READ_ONLY_ATTRIBUTES = [
   ['ops_issue_type', 'Typ dopytu', 22, false],
   ['address_municipality', 'Adresa (Mesto / Obec)', 53, true],
   ['address_municipality_district', 'Adresa (Mestská časť)', 54, true],
-  ['address_street', 'Adresa (Ulica)', 57, true],
-  ['address_house_number', 'Adresa (Číslo domu)', 58, true],
+  ['address_street', 'Adresa (Ulica)', 56, true],
+  ['address_house_number', 'Adresa (Číslo domu)', 57, true],
 ]
 
 class RequestMock
@@ -382,6 +382,7 @@ namespace :ops do
           "ticket.ops_responsible_subject" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.address_lat" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.address_lon" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.address_postcode" => { "operator" => "set_readonly", "set_readonly" => "true" },
         }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "set_readonly", "set_readonly" => "true" }] }.to_h)
         flow.active = true
         flow.stop_after_match = false
@@ -681,7 +682,8 @@ namespace :ops do
           address_street: "Vysoká",
           address_house_number: "7490/2A",
           address_lat: 48.14816,
-          address_lon: 17.10674
+          address_lon: 17.10674,
+          address_postcode: "81106",
         )
 
         ticket.articles.create!(
@@ -725,7 +727,8 @@ namespace :ops do
           address_municipality: "Bratislava",
           address_municipality_district: "okres Bratislava I",
           address_street: "Vysoká",
-          address_house_number: "7490/2A"
+          address_house_number: "7490/2A",
+          address_postcode: "81106",
         )
 
         ticket.articles.create!(
