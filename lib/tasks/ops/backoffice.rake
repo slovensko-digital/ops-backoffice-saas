@@ -528,6 +528,7 @@ namespace :ops do
         trigger.condition = {
           "article.action" => { "operator" => "is", "value" => "create" },
           "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
+          "article.type_id" => { "operator" => "is", "value" => [Ticket::Article::Type.find_by(name: "note").id] },
           "article.sender_id" => { "operator" => "is", "value" => [ Ticket::Article::Sender.lookup(name: 'Agent').id ] },
           "article.internal" => { "operator" => "is", "value" => [ "false" ] },
           "customer.email" => { "operator" => "contains", "value" => "@" }
