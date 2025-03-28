@@ -4,13 +4,10 @@ READ_ONLY_ATTRIBUTES = [
   ['ops_subcategory', 'Podkategória', 19, false],
   ['ops_subtype', 'Typ Problému', 20, false],
   ['ops_issue_type', 'Typ dopytu', 22, false],
-  ['address_state', 'Adresa (Kraj)', 51, false],
-  ['address_county', 'Adresa (Okres)', 52, false],
-  ['address_city', 'Adresa (Mesto / Obec)', 53, true],
-  ['address_city_district', 'Adresa (Mestská časť)', 54, true],
-  ['address_suburb', 'Adresa (Miestna časť)', 55, true],
-  ['address_road', 'Adresa (Ulica)', 57, true],
-  ['address_house_number', 'Adresa (Číslo domu)', 58, true],
+  ['address_municipality', 'Adresa (Mesto / Obec)', 53, true],
+  ['address_municipality_district', 'Adresa (Mestská časť)', 54, true],
+  ['address_street', 'Adresa (Ulica)', 56, true],
+  ['address_house_number', 'Adresa (Číslo domu)', 57, true],
 ]
 
 class RequestMock
@@ -61,16 +58,26 @@ def setup_technical_user(role_id)
   token.save!
 end
 
-def create_ops_user_role
+def create_ops_user_roles
   Rails.logger.info "Create OPS User role..."
-  ops_user_role = Role.find_or_initialize_by(name: 'Portal User') do |role|
-    role.note = __('OPS Portal users.')
+  ops_user_role = Role.find_or_initialize_by(name: 'OPS User') do |role|
+    role.note = __('Odkaz pre starostu portal users.')
     role.default_at_signup = false
     role.preferences = {}
     role.updated_by_id = 1
     role.created_by_id = 1
   end
   ops_user_role.save!
+
+  Rails.logger.info "Create Správca podnetov pre OPS role..."
+  agent_ops_role = Role.find_or_initialize_by(name: 'Správca podnetov pre OPS').tap do |role|
+    role.note = __('Agent Odkazu pre starostu.')
+    role.active = true
+    role.updated_by_id = 1
+    role.created_by_id = 1
+  end
+  agent_ops_role.permission_grant('ticket.agent')
+  agent_ops_role.save!
 end
 
 def create_ops_tech_account_role
@@ -84,6 +91,7 @@ def create_ops_tech_account_role
   ops_tech_account_role.permission_grant('admin.user')
   ops_tech_account_role.permission_grant('ticket.agent')
   ops_tech_account_role.permission_grant('user_preferences.access_token')
+  ops_tech_account_role.groups << Group.find_by(name: 'Incoming')
   ops_tech_account_role.save!
   ops_tech_account_role
 end
@@ -111,6 +119,7 @@ namespace :ops do
         Setting.set('product_name', ENV.fetch('PRODUCT_NAME'))
         Setting.set('organization', ENV.fetch('ORGANIZATION'))
         Setting.set('http_type', ENV.fetch('HTTP_TYPE', 'http'))
+        Setting.set('ticket_hook', "Tiket#")
 
         Rails.logger.info "Setting access control..."
         Setting.set('api_password_access', false) # Disable password access to REST API
@@ -147,7 +156,7 @@ namespace :ops do
 
       setup_elastic if ENV['ELASTICSEARCH_ENABLED'] == 'true'
 
-      create_ops_user_role
+      create_ops_user_roles
       ops_tech_role = create_ops_tech_account_role
 
       setup_technical_user(ops_tech_role.id) unless User.count > 3
@@ -323,24 +332,6 @@ namespace :ops do
         tm.created_by_id = 1
       end.save!
 
-      # hide some attributes everywhere
-      CoreWorkflow.find_or_initialize_by(name: 'hide state and county').tap do |flow|
-        flow.object = "Ticket"
-        flow.preferences = { "screen" => [ "create_middle", "edit" ] }
-        flow.condition_saved = {}
-        flow.condition_selected = {}
-        flow.perform = {
-          "ticket.address_state" => { "operator" => "hide", "hide" => "true" },
-          "ticket.address_county" => { "operator" => "hide", "hide" => "true" }
-        }
-        flow.active = true
-        flow.stop_after_match = false
-        flow.changeable = false
-        flow.priority = 100
-        flow.updated_by_id = 1
-        flow.created_by_id = 1
-      end.save!
-
       # make origin readonly for all tickets
       CoreWorkflow.find_or_initialize_by(name: 'ops - read-only origin').tap do |flow|
         flow.object = "Ticket"
@@ -388,7 +379,10 @@ namespace :ops do
         flow.condition_selected = {}
         flow.perform = {
           "ticket.ops_likes_count" => { "operator" => "set_readonly", "set_readonly" => "true" },
-          "ticket.ops_issue_type" => { "operator" => "set_readonly", "set_readonly" => "true" }
+          "ticket.ops_responsible_subject" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.address_lat" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.address_lon" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.address_postcode" => { "operator" => "set_readonly", "set_readonly" => "true" },
         }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "set_readonly", "set_readonly" => "true" }] }.to_h)
         flow.active = true
         flow.stop_after_match = false
@@ -398,8 +392,27 @@ namespace :ops do
         flow.created_by_id = 1
       end.save!
 
+      CoreWorkflow.find_or_initialize_by(name: 'ops - show ops attributes for ops tickets').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_likes_count" => { "operator" => "show", "show" => "true" },
+          "ticket.ops_responsible_subject" => { "operator" => "show", "show" => "true" },
+          "ticket.address_lat" => { "operator" => "show", "show" => "true" },
+          "ticket.address_lon" => { "operator" => "show", "show" => "true" },
+        }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "show", "show" => "true" }] }.to_h)
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 99
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
       # hide state and group from customer ticket create_middle screen
-      CoreWorkflow.find_or_initialize_by(name: 'hide state and group from create_middle').tap do |flow|
+      CoreWorkflow.find_or_initialize_by(name: 'OPS - skryť stav a skupinu z obrazovky vytvárania tiketu').tap do |flow|
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "create_middle" ] }
         flow.condition_saved = {}
@@ -433,6 +446,24 @@ namespace :ops do
         flow.stop_after_match = false
         flow.changeable = false
         flow.priority = 100
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      # allow Správca podnetov pre OPS to edit ops attributes ops_state and ops_responsible_subject
+      CoreWorkflow.find_or_initialize_by(name: 'OPS - povoliť role Správca podnetov pre OPS meniť stav a zodpovedný subjekt pre Odkaz pre starostu').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
+        flow.condition_selected = { "session.role_ids" => { "operator" => "is", "value" => [ Role.find_by(name: "Správca podnetov pre OPS").id ] } }
+        flow.perform = {
+          "ticket.ops_state" => { "operator" => "unset_readonly", "unset_readonly" => "true" },
+          "ticket.ops_responsible_subject" => { "operator" => "unset_readonly", "unset_readonly" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = true
+        flow.priority = 120
         flow.updated_by_id = 1
         flow.created_by_id = 1
       end.save!
@@ -485,8 +516,12 @@ namespace :ops do
         trigger.condition = {
           "operator" => "AND",
           "conditions" => [
-            { "name" => "ticket.origin", "operator" => "is", "value" => ["ops"] },
-            { "name" => "ticket.ops_state", "operator" => "has changed", "value" => [] }
+            { "name" => "ticket.origin", "operator" => "is", "value" => [ "ops" ] },
+            { "operator" => "OR", "conditions" => [
+                { "name" => "ticket.ops_state", "operator" => "has changed", "value" => [ ] },
+                { "name" => "ticket.ops_responsible_subject", "operator" => "has changed", "value" => [ ] }
+              ]
+            }
           ]
         }
         trigger.perform = { "notification.webhook" => { "webhook_id" => Webhook.find_by(name: 'OPS - ticket.updated').id } }
@@ -604,6 +639,9 @@ namespace :ops do
         trigger.created_by_id = 1
       end.save!
 
+      # deactivate predefined triggers
+      Trigger.find_by(name: 'auto reply (on new tickets)').update!(active: false)
+
       # add sample tickets
       if ENV['CREATE_SAMPLE_TICKET'] == "true" && Ticket.count < 2
         Rails.logger.info "Creating sample tickets..."
@@ -614,14 +652,14 @@ namespace :ops do
           email: "example.portal.customer@localhost",
           firstname: "Portal Customer",
           lastname: "Example",
-          role_ids: [Role.find_by(name: 'Portal User').id]
+          role_ids: [Role.find_by(name: 'OPS User').id]
         )
 
         agent = User.create!(
           email: "example.agent@localhost",
           firstname: "Agent",
           lastname: "Example",
-          role_ids: [Role.find_by(name: 'Agent').id],
+          role_ids: [Role.find_by(name: 'Agent').id, Role.find_by(name: 'Správca podnetov pre OPS').id],
           group_ids: [incoming_group.id],
         )
 
@@ -633,18 +671,19 @@ namespace :ops do
           title: "OPS: Poškodená dlažba chodníka",
           customer_id: customer.id,
           origin: "ops",
+          ops_responsible_subject: {"label"=>"MÚ Staré Mesto", "value"=>1},
           ops_category: "Komunikácie",
           ops_subcategory: "chodník",
           ops_subtype: "poškodená dlažba",
           ops_issue_type: "Podnet",
           ops_likes_count: 13,
-          address_state: nil,
-          address_county: "",
-          address_city: "Bratislava",
-          address_city_district: "okres Bratislava I",
-          address_suburb: "Bratislava",
-          address_road: "Vysoká",
+          address_municipality: "Bratislava",
+          address_municipality_district: "okres Bratislava I",
+          address_street: "Vysoká",
           address_house_number: "7490/2A",
+          address_lat: 48.14816,
+          address_lon: 17.10674,
+          address_postcode: "81106",
         )
 
         ticket.articles.create!(
@@ -685,13 +724,11 @@ namespace :ops do
           title: "Custom podnet: Nepokosená tráva",
           customer_id: customer.id,
           origin: nil,
-          address_state: nil,
-          address_county: "",
-          address_city: "Bratislava",
-          address_city_district: "okres Bratislava I",
-          address_suburb: "Bratislava",
-          address_road: "Vysoká",
-          address_house_number: "7490/2A"
+          address_municipality: "Bratislava",
+          address_municipality_district: "okres Bratislava I",
+          address_street: "Vysoká",
+          address_house_number: "7490/2A",
+          address_postcode: "81106",
         )
 
         ticket.articles.create!(
