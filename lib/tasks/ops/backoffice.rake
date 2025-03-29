@@ -380,6 +380,7 @@ namespace :ops do
         flow.perform = {
           "ticket.ops_likes_count" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.ops_responsible_subject" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_state" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.address_lat" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.address_lon" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.address_postcode" => { "operator" => "set_readonly", "set_readonly" => "true" },
@@ -466,6 +467,37 @@ namespace :ops do
         flow.stop_after_match = false
         flow.changeable = true
         flow.priority = 120
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      # when ops_responsible_subject is changed, set ops_state to "sent_to_responsible" and state to pending close 1 week
+      CoreWorkflow.find_or_initialize_by(name: 'OPS - zmeniť stav tiketu pri zmene zodpovednosti').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] }
+        }
+        flow.condition_selected = {
+          "session.role_ids" => { "operator" => "is", "value" => [ Role.find_by(name: "Správca podnetov pre OPS").id ] },
+          "ticket.ops_responsible_subject" => { "operator" => "just changed", "value_completion" => "", "value" => [ ] }
+        }
+        flow.perform = {
+          "ticket.ops_state" => { "operator" => [ "set_fixed_to", "set_readonly" ],
+            "set_fixed_to" => [ "sent_to_responsible" ],
+            "set_readonly" => "true"
+          },
+          "ticket.investment" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.state_id" => { "operator" => "set_fixed_to", "set_fixed_to" => [ Ticket::State.find_by(name: "pending close").id.to_s ] },
+          "ticket.pending_time" => { "operator" => [ "show", "set_mandatory" ],
+            "show" => "true",
+            "set_mandatory" => "true"
+          }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = true
+        flow.priority = 200
         flow.updated_by_id = 1
         flow.created_by_id = 1
       end.save!
@@ -648,6 +680,13 @@ namespace :ops do
       if ENV['CREATE_SAMPLE_TICKET'] == "true" && Ticket.count < 2
         Rails.logger.info "Creating sample tickets..."
 
+        if ENV['ADMIN_EMAIL']
+          user = User.find_by(email: ENV.fetch('ADMIN_EMAIL'))
+          user.groups << Group.find_by(name: 'Incoming')
+          user.roles << Role.find_by(name: 'Správca podnetov pre OPS')
+          user.save!
+        end
+
         UserInfo.current_user_id = User.last.id
 
         customer = User.create!(
@@ -669,7 +708,7 @@ namespace :ops do
           group_id: incoming_group.id,
           owner_id: agent.id,
           state_id: 1,
-          ops_state: "V riešení",
+          ops_state: "in_progress",
           title: "OPS: Poškodená dlažba chodníka",
           customer_id: customer.id,
           origin: "ops",
