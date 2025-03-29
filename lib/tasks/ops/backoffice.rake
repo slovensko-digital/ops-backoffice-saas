@@ -383,6 +383,7 @@ namespace :ops do
           "ticket.address_lat" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.address_lon" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.address_postcode" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_portal_url" => { "operator" => "set_readonly", "set_readonly" => "true" },
         }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "set_readonly", "set_readonly" => "true" }] }.to_h)
         flow.active = true
         flow.stop_after_match = false
@@ -402,6 +403,7 @@ namespace :ops do
           "ticket.ops_responsible_subject" => { "operator" => "show", "show" => "true" },
           "ticket.address_lat" => { "operator" => "show", "show" => "true" },
           "ticket.address_lon" => { "operator" => "show", "show" => "true" },
+          "ticket.ops_portal_url" => { "operator" => "show", "show" => "true" },
         }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "show", "show" => "true" }] }.to_h)
         flow.active = true
         flow.stop_after_match = false
@@ -684,6 +686,7 @@ namespace :ops do
           address_lat: 48.14816,
           address_lon: 17.10674,
           address_postcode: "81106",
+          ops_portal_url: "https://ops.dev.slovensko.digital/issues/1",
         )
 
         ticket.articles.create!(
