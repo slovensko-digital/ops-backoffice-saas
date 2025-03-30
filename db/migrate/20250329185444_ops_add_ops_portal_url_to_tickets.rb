@@ -1,4 +1,4 @@
-class AddOpsPortalUrlToTickets < ActiveRecord::Migration[7.1]
+class OpsAddOpsPortalUrlToTickets < ActiveRecord::Migration[7.1]
   def up
     return unless Setting.exists?(name: 'system_init_done')
 
