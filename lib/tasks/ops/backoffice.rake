@@ -441,7 +441,7 @@ namespace :ops do
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "edit" ] }
         flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
-        flow.condition_selected = { "session.role_ids" => { "operator" => "is not", "value" => [ "6" ] } }
+        flow.condition_selected = { "session.role_ids" => { "operator" => "is not", "value" => [ Role.find_by(name: "OPS Tech Account").id ] } }
         flow.perform = { "ticket.ops_state" => {
           "operator" => [ "set_fixed_to", "set_mandatory" ],
           "set_fixed_to" => [ "sent_to_responsible", "in_progress", "marked_as_resolved", "referred" ],
