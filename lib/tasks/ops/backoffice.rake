@@ -676,7 +676,7 @@ namespace :ops do
       end.save!
 
       # deactivate predefined triggers
-      Trigger.find_by(name: 'auto reply (on new tickets)').update!(active: false)
+      Trigger.find_by(name: 'auto reply (on new tickets)')&.update!(active: false)
 
       # add sample tickets
       if ENV['CREATE_SAMPLE_TICKET'] == "true" && Ticket.count < 2
