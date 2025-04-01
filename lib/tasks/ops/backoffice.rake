@@ -504,6 +504,22 @@ namespace :ops do
         flow.created_by_id = 1
       end.save!
 
+      # add workflow to stop all other workflows for ops tech user role
+      CoreWorkflow.find_or_initialize_by(name: 'ops - stop all other workflows for ops tech user role').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {}
+        flow.condition_selected = { "session.role_ids" => { "operator" => "is", "value" => [ Role.find_by(name: "OPS Tech Account").id ] } }
+        flow.perform = {}
+        flow.active = true
+        flow.stop_after_match = true
+        flow.changeable = false
+        flow.priority = 1
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+
       # add ticket.updated webhook
       Webhook.find_or_initialize_by(name: 'OPS - ticket.updated').tap do |webhook|
         webhook.endpoint = File.join(ENV.fetch('OPS_CONNECTOR_URL'), 'connector/backoffice/webhook')
