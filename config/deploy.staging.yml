@@ -27,6 +27,9 @@ accessories:
 builder:
   arch: amd64
   remote: ssh://kamal@dev.slovensko.digital
+  cache:
+    type: registry
+    options: mode=max,image-manifest=true,oci-mediatypes=true
 
 ssh:
   user: kamal
