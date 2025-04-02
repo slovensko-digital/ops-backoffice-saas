@@ -96,6 +96,27 @@ def create_ops_tech_account_role
   ops_tech_account_role
 end
 
+def update_agent_role_permissions
+  Rails.logger.info "Update agent role permissions..."
+  agent_role = Role.find_by(name: 'Agent')
+  agent_role.permission_grant('user_preferences.password')
+  agent_role.permission_grant('user_preferences.appearance')
+  agent_role.permission_grant('user_preferences.avatar')
+  agent_role.permission_grant('user_preferences.calendar')
+  agent_role.permission_grant('user_preferences.device')
+  agent_role.permission_grant('user_preferences.language')
+  agent_role.permission_grant('user_preferences.linked_accounts')
+  agent_role.permission_grant('user_preferences.notifications')
+  agent_role.permission_grant('user_preferences.out_of_office')
+  agent_role.permission_grant('user_preferences.overview_sorting')
+  agent_role.permission_grant('user_preferences.password')
+  agent_role.permission_grant('user_preferences.two_factor_authentication')
+
+  agent_role.permission_revoke('user_preferences')
+
+  agent_role.save!
+end
+
 def setup_elastic
   Rails.logger.info "Setting up Elasticsearch..."
   Setting.set('es_url', "#{ENV.fetch('ELASTICSEARCH_SCHEMA')}://#{ENV.fetch('ELASTICSEARCH_HOST')}:#{ENV.fetch('ELASTICSEARCH_PORT')}")
@@ -161,6 +182,8 @@ namespace :ops do
 
       setup_technical_user(ops_tech_role.id) unless User.count > 3
 
+      update_agent_role_permissions
+
       # add ops readonly attributes to ticket
       READ_ONLY_ATTRIBUTES.each do |name, title, position, shown|
         ObjectManager::Attribute.add(
@@ -177,11 +200,11 @@ namespace :ops do
           active: true,
           screens: {
             create_middle: {
-              'ticket.customer' => { shown: shown },
+              'ticket.agent_role' => { shown: shown },
               'ticket.agent' => { shown: shown }
             },
             edit: {
-              'ticket.customer' => { shown: true },
+              'ticket.agent_role' => { shown: true },
               'ticket.agent' => { shown: true }
             }
           },
@@ -210,11 +233,11 @@ namespace :ops do
         active: true,
         screens: {
           create_middle: {
-            'ticket.customer' => { shown: false },
+            'ticket.agent_role' => { shown: false },
             'ticket.agent' => { shown: false }
           },
           edit: {
-            'ticket.customer' => { shown: true },
+            'ticket.agent_role' => { shown: true },
             'ticket.agent' => { shown: true }
           }
         },
@@ -238,11 +261,11 @@ namespace :ops do
         active: true,
         screens: {
           create_middle: {
-            'ticket.customer' => { shown: false },
+            'ticket.agent_role' => { shown: false },
             'ticket.agent' => { shown: false }
           },
           edit: {
-            'ticket.customer' => { shown: true },
+            'ticket.agent_role' => { shown: true },
             'ticket.agent' => { shown: true }
           }
         },
@@ -264,11 +287,11 @@ namespace :ops do
         screens: {
           edit: {
             'ticket.agent' => { shown: true },
-            'ticket.customer' => { shown: true },
+            'ticket.agent_role' => { shown: true },
           },
           create_middle: {
             'ticket.agent' => { shown: false },
-            'ticket.customer' => { shown: false },
+            'ticket.agent_role' => { shown: false },
           }
         },
         position: 100,
@@ -308,11 +331,11 @@ namespace :ops do
         screens: {
           create_middle: {
             'ticket.agent' => { shown: false },
-            'ticket.customer' => { shown: false },
+            'ticket.agent_role' => { shown: false },
           },
           edit: {
             'ticket.agent' => { shown: true },
-            'ticket.customer' => { shown: false },
+            'ticket.agent_role' => { shown: false },
           }
         },
         position: 39,
@@ -414,7 +437,7 @@ namespace :ops do
         flow.created_by_id = 1
       end.save!
 
-      # hide state and group from customer ticket create_middle screen
+      # hide state and group from agent_role ticket create_middle screen
       CoreWorkflow.find_or_initialize_by(name: 'OPS - skryť stav a skupinu z obrazovky vytvárania tiketu').tap do |flow|
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "create_middle" ] }
@@ -644,14 +667,14 @@ namespace :ops do
       end
 
       # add trigger for sending public agent article via email
-      Trigger.find_or_initialize_by(name: 'OPS - email public agent article to customer').tap do |trigger|
+      Trigger.find_or_initialize_by(name: 'OPS - email public agent article to agent_role').tap do |trigger|
         trigger.condition = {
           "article.action" => { "operator" => "is", "value" => "create" },
           "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
           "article.type_id" => { "operator" => "is", "value" => [Ticket::Article::Type.find_by(name: "note").id] },
           "article.sender_id" => { "operator" => "is", "value" => [ Ticket::Article::Sender.lookup(name: 'Agent').id ] },
           "article.internal" => { "operator" => "is", "value" => [ "false" ] },
-          "customer.email" => { "operator" => "contains", "value" => "@" }
+          "agent_role.email" => { "operator" => "contains", "value" => "@" }
         }
         trigger.perform = {
           "notification.email" => {
@@ -690,7 +713,7 @@ namespace :ops do
         UserInfo.current_user_id = User.last.id
 
         customer = User.create!(
-          email: "example.portal.customer@localhost",
+          email: "example.portal.agent_role@localhost",
           firstname: "Portal Customer",
           lastname: "Example",
           role_ids: [Role.find_by(name: 'OPS User').id]
