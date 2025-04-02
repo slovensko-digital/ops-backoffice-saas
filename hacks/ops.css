@@ -20,15 +20,6 @@
     display: none;
 }
 
-/* PROFILE */
-
-/* Hide token access */
-/*
-.NavBarProfile li:has(> a[href='#profile/token_access']) {
-    display: none;
-}
-*/
-
 /* Nicer avatar OPS logo */
 .avatar:has(> .icon-logo) {
     background-color: inherit !important;
