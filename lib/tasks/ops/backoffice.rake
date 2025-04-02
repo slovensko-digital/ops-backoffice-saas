@@ -403,6 +403,7 @@ namespace :ops do
         flow.perform = {
           "ticket.ops_likes_count" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.ops_responsible_subject" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_responsible_subject_changed_at" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.ops_state" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.address_lat" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.address_lon" => { "operator" => "set_readonly", "set_readonly" => "true" },
@@ -425,6 +426,7 @@ namespace :ops do
         flow.perform = {
           "ticket.ops_likes_count" => { "operator" => "show", "show" => "true" },
           "ticket.ops_responsible_subject" => { "operator" => "show", "show" => "true" },
+          "ticket.ops_responsible_subject_changed_at" => { "operator" => "show", "show" => "true" },
           "ticket.address_lat" => { "operator" => "show", "show" => "true" },
           "ticket.address_lon" => { "operator" => "show", "show" => "true" },
           "ticket.ops_portal_url" => { "operator" => "show", "show" => "true" },
@@ -524,6 +526,22 @@ namespace :ops do
         flow.updated_by_id = 1
         flow.created_by_id = 1
       end.save!
+
+      # add workflow to stop all other workflows for ops tech user role
+      CoreWorkflow.find_or_initialize_by(name: 'ops - stop all other workflows for ops tech user role').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {}
+        flow.condition_selected = { "session.role_ids" => { "operator" => "is", "value" => [ Role.find_by(name: "OPS Tech Account").id ] } }
+        flow.perform = {}
+        flow.active = true
+        flow.stop_after_match = true
+        flow.changeable = false
+        flow.priority = 1
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
 
       # add ticket.updated webhook
       Webhook.find_or_initialize_by(name: 'OPS - ticket.updated').tap do |webhook|
@@ -697,7 +715,7 @@ namespace :ops do
       end.save!
 
       # deactivate predefined triggers
-      Trigger.find_by(name: 'auto reply (on new tickets)').update!(active: false)
+      Trigger.find_by(name: 'auto reply (on new tickets)')&.update!(active: false)
 
       # add sample tickets
       if ENV['CREATE_SAMPLE_TICKET'] == "true" && Ticket.count < 2

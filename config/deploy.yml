@@ -55,6 +55,10 @@ env: &env
     PRODUCT_NAME: <%= ENV.fetch('PRODUCT_NAME') %>
     ORGANIZATION: <%= ENV.fetch('ORGANIZATION') %>
 
+    WEBHOOK_TENANT_ID: <%= ENV.fetch('WEBHOOK_TENANT_ID') %>
+    OPS_CONNECTOR_URL: <%= ENV.fetch('OPS_CONNECTOR_URL') %>
+    OPS_PORTAL_URL: <%= ENV.fetch('OPS_PORTAL_URL') %>
+
   secret:
     - RAILS_MASTER_KEY
     - POSTGRESQL_PASS
@@ -67,6 +71,7 @@ env: &env
     - GOOGLE_OAUTH2_CLIENT_SECRET
     - ZAMMAD_ELASTICSEARCH_USER
     - ZAMMAD_ELASTICSEARCH_PASSWORD
+    - WEBHOOK_SECRET
 
 aliases:
   console: app exec --interactive --reuse "/docker-entrypoint.sh bin/rails console"
