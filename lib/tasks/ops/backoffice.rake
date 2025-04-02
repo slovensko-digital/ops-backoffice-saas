@@ -214,14 +214,14 @@ namespace :ops do
             'ticket.agent' => { shown: false }
           },
           edit: {
-            'ticket.customer' => { shown: true },
-            'ticket.agent' => { shown: true }
+            'ticket.customer' => { shown: false },
+            'ticket.agent' => { shown: false }
           }
         },
         position: 16,
         created_by_id: 1,
         updated_by_id: 1
-      ) unless ObjectManager::Attribute.where(name: 'origin', object_lookup: ObjectLookup.by_name('Ticket')).exists?
+      )
 
       # add investment to tickets
       ObjectManager::Attribute.add(
@@ -362,6 +362,23 @@ namespace :ops do
           "ticket.ops_issue_type" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_likes_count" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_state" => { "operator" => "hide", "hide" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 100
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      # show origin only if set
+      CoreWorkflow.find_or_initialize_by(name: 'ops - show ticket origin if set').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = { "ticket.origin" => { "operator" => "is set", "value" => [] } }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.origin" => { "operator" => "show", "show" => "true" },
         }
         flow.active = true
         flow.stop_after_match = false
