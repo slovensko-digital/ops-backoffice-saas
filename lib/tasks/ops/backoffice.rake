@@ -426,7 +426,6 @@ namespace :ops do
         flow.perform = {
           "ticket.ops_likes_count" => { "operator" => "show", "show" => "true" },
           "ticket.ops_responsible_subject" => { "operator" => "show", "show" => "true" },
-          "ticket.ops_responsible_subject_changed_at" => { "operator" => "show", "show" => "true" },
           "ticket.address_lat" => { "operator" => "show", "show" => "true" },
           "ticket.address_lon" => { "operator" => "show", "show" => "true" },
           "ticket.ops_portal_url" => { "operator" => "show", "show" => "true" },
