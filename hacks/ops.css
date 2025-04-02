@@ -29,7 +29,7 @@
 }
 */
 
-/* Article avatar */
+/* Nicer avatar OPS logo */
 .avatar:has(> .icon-logo) {
     background-color: inherit !important;
 }
