@@ -5,6 +5,16 @@ def replace_file_with(file, &block)
   File.write(file, block.call(File.read(file)))
 end
 
+# Update log level configuration to use environment variable
+replace_file_with('config/environments/production.rb') do |content|
+  content.gsub('config.log_level = :info', 'config.log_level = ENV.fetch("LOG_LEVEL", "info")')
+end
+
+# Append ops seeds to the end of the list
+replace_file_with('db/seeds.rb') do |content|
+  content.gsub(/(seeds = %w\[.*)\]/, '\1 ops_custom_fields]')
+end
+
 # change logo
 replace_file_with('public/assets/images/icons.svg') do |content|
   content.gsub(/<symbol id="icon-logo".*?<\/symbol>/m, File.read('hacks/logo.svg'))
