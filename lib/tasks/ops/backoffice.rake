@@ -200,11 +200,11 @@ namespace :ops do
           active: true,
           screens: {
             create_middle: {
-              'ticket.agent_role' => { shown: shown },
+              'ticket.customer' => { shown: shown },
               'ticket.agent' => { shown: shown }
             },
             edit: {
-              'ticket.agent_role' => { shown: true },
+              'ticket.customer' => { shown: true },
               'ticket.agent' => { shown: true }
             }
           },
@@ -233,11 +233,11 @@ namespace :ops do
         active: true,
         screens: {
           create_middle: {
-            'ticket.agent_role' => { shown: false },
+            'ticket.customer' => { shown: false },
             'ticket.agent' => { shown: false }
           },
           edit: {
-            'ticket.agent_role' => { shown: true },
+            'ticket.customer' => { shown: true },
             'ticket.agent' => { shown: true }
           }
         },
@@ -261,11 +261,11 @@ namespace :ops do
         active: true,
         screens: {
           create_middle: {
-            'ticket.agent_role' => { shown: false },
+            'ticket.customer' => { shown: false },
             'ticket.agent' => { shown: false }
           },
           edit: {
-            'ticket.agent_role' => { shown: true },
+            'ticket.customer' => { shown: true },
             'ticket.agent' => { shown: true }
           }
         },
@@ -287,11 +287,11 @@ namespace :ops do
         screens: {
           edit: {
             'ticket.agent' => { shown: true },
-            'ticket.agent_role' => { shown: true },
+            'ticket.customer' => { shown: true },
           },
           create_middle: {
             'ticket.agent' => { shown: false },
-            'ticket.agent_role' => { shown: false },
+            'ticket.customer' => { shown: false },
           }
         },
         position: 100,
@@ -331,11 +331,11 @@ namespace :ops do
         screens: {
           create_middle: {
             'ticket.agent' => { shown: false },
-            'ticket.agent_role' => { shown: false },
+            'ticket.customer' => { shown: false },
           },
           edit: {
             'ticket.agent' => { shown: true },
-            'ticket.agent_role' => { shown: false },
+            'ticket.customer' => { shown: false },
           }
         },
         position: 39,
@@ -437,7 +437,7 @@ namespace :ops do
         flow.created_by_id = 1
       end.save!
 
-      # hide state and group from agent_role ticket create_middle screen
+      # hide state and group from customer ticket create_middle screen
       CoreWorkflow.find_or_initialize_by(name: 'OPS - skryť stav a skupinu z obrazovky vytvárania tiketu').tap do |flow|
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "create_middle" ] }
@@ -667,14 +667,14 @@ namespace :ops do
       end
 
       # add trigger for sending public agent article via email
-      Trigger.find_or_initialize_by(name: 'OPS - email public agent article to agent_role').tap do |trigger|
+      Trigger.find_or_initialize_by(name: 'OPS - email public agent article to customer').tap do |trigger|
         trigger.condition = {
           "article.action" => { "operator" => "is", "value" => "create" },
           "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
           "article.type_id" => { "operator" => "is", "value" => [Ticket::Article::Type.find_by(name: "note").id] },
           "article.sender_id" => { "operator" => "is", "value" => [ Ticket::Article::Sender.lookup(name: 'Agent').id ] },
           "article.internal" => { "operator" => "is", "value" => [ "false" ] },
-          "agent_role.email" => { "operator" => "contains", "value" => "@" }
+          "customer.email" => { "operator" => "contains", "value" => "@" }
         }
         trigger.perform = {
           "notification.email" => {
@@ -713,7 +713,7 @@ namespace :ops do
         UserInfo.current_user_id = User.last.id
 
         customer = User.create!(
-          email: "example.portal.agent_role@localhost",
+          email: "example.portal.customer@localhost",
           firstname: "Portal Customer",
           lastname: "Example",
           role_ids: [Role.find_by(name: 'OPS User').id]
