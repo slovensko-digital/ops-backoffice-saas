@@ -30,6 +30,6 @@
 */
 
 /* Article avatar */
-.article-content .avatar{
+.avatar:has(> .icon-logo) {
     background-color: inherit !important;
 }
