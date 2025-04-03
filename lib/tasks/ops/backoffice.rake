@@ -3,7 +3,6 @@ READ_ONLY_ATTRIBUTES = [
   ['ops_category', 'Kategória v Odkaze pre starostu', 17, false],
   ['ops_subcategory', 'Podkategória', 19, false],
   ['ops_subtype', 'Typ Problému', 20, false],
-  ['ops_issue_type', 'Typ dopytu', 22, false],
   ['address_municipality', 'Adresa (Mesto / Obec)', 53, true],
   ['address_municipality_district', 'Adresa (Mestská časť)', 54, true],
   ['address_street', 'Adresa (Ulica)', 56, true],
@@ -425,6 +424,7 @@ namespace :ops do
           "ticket.address_lon" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.address_postcode" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.ops_portal_url" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_issue_type" => { "operator" => "set_readonly", "set_readonly" => "true" },
         }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "set_readonly", "set_readonly" => "true" }] }.to_h)
         flow.active = true
         flow.stop_after_match = false
@@ -445,6 +445,7 @@ namespace :ops do
           "ticket.address_lat" => { "operator" => "show", "show" => "true" },
           "ticket.address_lon" => { "operator" => "show", "show" => "true" },
           "ticket.ops_portal_url" => { "operator" => "show", "show" => "true" },
+          "ticket.ops_issue_type" => { "operator" => "show", "show" => "true" },
         }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "show", "show" => "true" }] }.to_h)
         flow.active = true
         flow.stop_after_match = false
@@ -772,7 +773,7 @@ namespace :ops do
           ops_category: "Komunikácie",
           ops_subcategory: "chodník",
           ops_subtype: "poškodená dlažba",
-          ops_issue_type: "Podnet",
+          ops_issue_type: "issue",
           ops_likes_count: 13,
           address_municipality: "Bratislava",
           address_municipality_district: "okres Bratislava I",

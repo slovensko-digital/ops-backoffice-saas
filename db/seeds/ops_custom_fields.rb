@@ -173,3 +173,36 @@ ObjectManager::Attribute.add(
   created_by_id: 1,
   updated_by_id: 1
 )
+
+ObjectManager::Attribute.add(
+  object: 'Ticket',
+  name: 'ops_issue_type',
+  display: 'Typ dopytu',
+  data_type: 'select',
+  data_option: {
+    options: [
+      { name: 'Podnet', value: 'issue' },
+      { name: 'Otázka', value: 'question' },
+      { name: 'Pochvala', value: 'praise' }
+    ],
+    customsort: 'on',
+    default: '',
+    null: true,
+    nulloption: true,
+    maxlength: 255,
+  },
+  active: true,
+  screens: {
+    create_middle: {
+      'ticket.agent' => { shown: false },
+      'ticket.customer' => { shown: false }
+    },
+    edit: {
+      'ticket.agent' => { shown: false },
+      'ticket.customer' => { shown: false }
+    }
+  },
+  position: 22,
+  created_by_id: 1,
+  updated_by_id: 1
+)
