@@ -96,6 +96,26 @@ def create_ops_tech_account_role
   ops_tech_account_role
 end
 
+def update_agent_role_permissions
+  Rails.logger.info "Update agent role permissions..."
+  agent_role = Role.find_by(name: 'Agent')
+  agent_role.permission_revoke('user_preferences')
+
+  agent_role.permission_grant('user_preferences.appearance')
+  agent_role.permission_grant('user_preferences.avatar')
+  agent_role.permission_grant('user_preferences.calendar')
+  agent_role.permission_grant('user_preferences.device')
+  agent_role.permission_grant('user_preferences.language')
+  agent_role.permission_grant('user_preferences.linked_accounts')
+  agent_role.permission_grant('user_preferences.notifications')
+  agent_role.permission_grant('user_preferences.out_of_office')
+  agent_role.permission_grant('user_preferences.overview_sorting')
+  agent_role.permission_grant('user_preferences.password')
+  agent_role.permission_grant('user_preferences.two_factor_authentication')
+
+  agent_role.save!
+end
+
 def setup_elastic
   Rails.logger.info "Setting up Elasticsearch..."
   Setting.set('es_url', "#{ENV.fetch('ELASTICSEARCH_SCHEMA')}://#{ENV.fetch('ELASTICSEARCH_HOST')}:#{ENV.fetch('ELASTICSEARCH_PORT')}")
@@ -160,6 +180,8 @@ namespace :ops do
       ops_tech_role = create_ops_tech_account_role
 
       setup_technical_user(ops_tech_role.id) unless User.count > 3
+
+      update_agent_role_permissions
 
       # add ops readonly attributes to ticket
       READ_ONLY_ATTRIBUTES.each do |name, title, position, shown|
@@ -420,7 +442,6 @@ namespace :ops do
         flow.perform = {
           "ticket.ops_likes_count" => { "operator" => "show", "show" => "true" },
           "ticket.ops_responsible_subject" => { "operator" => "show", "show" => "true" },
-          "ticket.ops_responsible_subject_changed_at" => { "operator" => "show", "show" => "true" },
           "ticket.address_lat" => { "operator" => "show", "show" => "true" },
           "ticket.address_lon" => { "operator" => "show", "show" => "true" },
           "ticket.ops_portal_url" => { "operator" => "show", "show" => "true" },

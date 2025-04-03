@@ -1,0 +1,26 @@
+/* Dashboard */
+
+/* Hide first steps onboarding tab */
+[data-area='first-steps-widgets'] {
+    display: none;
+}
+.dashboard .tabs--big .tab {
+    border-radius: 8px !important;
+}
+
+/* Ticket overview */
+
+/* Hide merge button */
+.dropdown.dropdown--actions li[data-type='ticket-merge'] {
+    display: none;
+}
+
+/* Hide linked knowledge base answers */
+.link_kb_answers {
+    display: none;
+}
+
+/* Nicer avatar OPS logo */
+.avatar:has(> .icon-logo) {
+    background-color: inherit !important;
+}
