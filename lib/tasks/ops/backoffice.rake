@@ -99,7 +99,8 @@ end
 def update_agent_role_permissions
   Rails.logger.info "Update agent role permissions..."
   agent_role = Role.find_by(name: 'Agent')
-  agent_role.permission_grant('user_preferences.password')
+  agent_role.permission_revoke('user_preferences')
+
   agent_role.permission_grant('user_preferences.appearance')
   agent_role.permission_grant('user_preferences.avatar')
   agent_role.permission_grant('user_preferences.calendar')
@@ -111,8 +112,6 @@ def update_agent_role_permissions
   agent_role.permission_grant('user_preferences.overview_sorting')
   agent_role.permission_grant('user_preferences.password')
   agent_role.permission_grant('user_preferences.two_factor_authentication')
-
-  agent_role.permission_revoke('user_preferences')
 
   agent_role.save!
 end
