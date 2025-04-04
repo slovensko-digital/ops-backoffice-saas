@@ -1,6 +1,6 @@
 module Ops::TicketArticlesControllerExtensions
   def update
-    # old desktop update article visiblity
+    # old desktop update article visibility
     article = Ticket::Article.find(params[:id])
 
     Service::Ticket::Update::Validator::OpsEnsureRoleForArticleVisibilityChange.new(
