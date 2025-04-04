@@ -5,7 +5,7 @@ module Ops::Service::Ticket::Article::ChangeVisibilityExtensions
       ticket: article.ticket,
       article_data: { internal: internal },
       user: current_user,
-      ).valid!
+    ).valid!
 
     super
   end
