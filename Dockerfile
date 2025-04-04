@@ -8,9 +8,7 @@ RUN mkdir hacks
 COPY ./hacks/* ./hacks/.
 RUN hacks/hacks.rb
 
-COPY ./db/migrate/* ./db/migrate/.
-COPY ./db/seeds/* ./db/seeds/.
-COPY ./lib/tasks/ops/backoffice.rake ./lib/tasks/ops/backoffice.rake
+COPY zammad ./
 
 EXPOSE 3000
 EXPOSE 6042

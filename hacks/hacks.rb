@@ -26,4 +26,4 @@ replace_file_with('app/views/layouts/application.html.erb') do |content|
 </head>
   HACK
 end
-FileUtils.cp('hacks/ops.css', 'public/assets/ops.css')
+
