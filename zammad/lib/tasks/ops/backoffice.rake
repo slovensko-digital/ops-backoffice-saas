@@ -247,7 +247,7 @@ namespace :ops do
       # add investment to tickets
       ObjectManager::Attribute.add(
         object: 'Ticket',
-        name: 'investment',
+        name: 'ops_investment',
         display: __('Investičná akcia'),
         data_type: 'boolean',
         data_option: {
@@ -263,14 +263,14 @@ namespace :ops do
             'ticket.agent' => { shown: false }
           },
           edit: {
-            'ticket.customer' => { shown: true },
-            'ticket.agent' => { shown: true }
+            'ticket.customer' => { shown: false },
+            'ticket.agent' => { shown: false }
           }
         },
         position: 42,
         created_by_id: 1,
         updated_by_id: 1
-      ) unless ObjectManager::Attribute.where(name: 'investment', object_lookup: ObjectLookup.by_name('Ticket')).exists?
+      )
 
       # add ops_likes_count to tickets
       ObjectManager::Attribute.add(
@@ -446,6 +446,7 @@ namespace :ops do
           "ticket.address_lon" => { "operator" => "show", "show" => "true" },
           "ticket.ops_portal_url" => { "operator" => "show", "show" => "true" },
           "ticket.ops_issue_type" => { "operator" => "show", "show" => "true" },
+          "ticket.ops_investment" => { "operator" => "show", "show" => "true" },
         }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "show", "show" => "true" }] }.to_h)
         flow.active = true
         flow.stop_after_match = false
