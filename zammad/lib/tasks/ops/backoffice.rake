@@ -636,7 +636,7 @@ namespace :ops do
             { "name" => "ticket.origin", "operator" => "is", "value" => ["ops"] },
             { "name" => "article.type_id", "operator" => "is", "value" => [Ticket::Article::Type.find_by(name: "note").id] },
             { "name" => "article.internal", "operator" => "is", "value" => ["false"] },
-            { "name" => "ticket.action", "operator" => "is not", "value" => "create" },
+            { "name" => "article.action", "operator" => "is", "value" => "create" },
           ]
         }
         trigger.perform = { "notification.webhook" => { "webhook_id" => Webhook.find_by(name: 'OPS - article.created').id } }
