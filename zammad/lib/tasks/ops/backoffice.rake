@@ -635,7 +635,9 @@ namespace :ops do
           "conditions" => [
             { "name" => "ticket.origin", "operator" => "is", "value" => ["ops"] },
             { "name" => "article.type_id", "operator" => "is", "value" => [Ticket::Article::Type.find_by(name: "note").id] },
-            { "name" => "article.internal", "operator" => "is", "value" => ["false"] }
+            { "name" => "article.internal", "operator" => "is", "value" => ["false"] },
+            { "name" => "article.action", "operator" => "is", "value" => "create" },
+            { "name" => "article.created_by_id", "operator" => "is not", "value" => [ User.find_by(firstname: "Aplikácia", lastname: "Odkaz pre starostu").id ] }
           ]
         }
         trigger.perform = { "notification.webhook" => { "webhook_id" => Webhook.find_by(name: 'OPS - article.created').id } }
