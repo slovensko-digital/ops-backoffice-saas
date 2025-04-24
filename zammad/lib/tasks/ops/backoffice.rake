@@ -140,6 +140,8 @@ namespace :ops do
         Setting.set('http_type', ENV.fetch('HTTP_TYPE', 'http'))
         Setting.set('ticket_hook', "Tiket#")
 
+        Ticket::Article::Type.find_by_name(:note).update!(communication: true)
+
         Rails.logger.info "Setting access control..."
         Setting.set('api_password_access', false) # Disable password access to REST API
         Setting.set('auth_third_party_auto_link_at_inital_login', true)
@@ -434,6 +436,37 @@ namespace :ops do
         flow.created_by_id = 1
       end.save!
 
+      CoreWorkflow.find_or_initialize_by(name: 'ops - read-only attributes for tickets with different responsible subject').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "create_middle", "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
+          "ticket.ops_responsible_subject" => {
+            "operator" => "is not",
+            "value_completion" => "",
+            "value" => [
+              {
+                "label" => ENV.fetch('OPS_RESPONSIBLE_SUBJECT'),
+                "value" => ENV.fetch('OPS_RESPONSIBLE_SUBJECT_ID')
+              }
+            ]
+          }
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_responsible_subject" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_responsible_subject_changed_at" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_state" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_investment" => { "operator" => "set_readonly", "set_readonly" => "true" },
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = true
+        flow.priority = 120
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
       CoreWorkflow.find_or_initialize_by(name: 'ops - show ops attributes for ops tickets').tap do |flow|
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "edit" ] }
@@ -530,11 +563,6 @@ namespace :ops do
             "set_readonly" => "true"
           },
           "ticket.investment" => { "operator" => "set_readonly", "set_readonly" => "true" },
-          "ticket.state_id" => { "operator" => "set_fixed_to", "set_fixed_to" => [ Ticket::State.find_by(name: "pending close").id.to_s ] },
-          "ticket.pending_time" => { "operator" => [ "show", "set_mandatory" ],
-            "show" => "true",
-            "set_mandatory" => "true"
-          }
         }
         flow.active = true
         flow.stop_after_match = false
@@ -603,15 +631,19 @@ namespace :ops do
         webhook.created_by_id = 1
       end.save!
 
+      tech_user = User.find_by(firstname: "Aplikácia", lastname: "Odkaz pre starostu")
+
       # add trigger for ticket.updated
       Trigger.find_or_initialize_by(name: 'OPS - ticket updated').tap do |trigger|
         trigger.condition = {
           "operator" => "AND",
           "conditions" => [
             { "name" => "ticket.origin", "operator" => "is", "value" => [ "ops" ] },
+            { "name" => "ticket.updated_by_id", "operator" => "is not", "pre_condition" => "specific", "value" => [ tech_user.id ] },
             { "operator" => "OR", "conditions" => [
                 { "name" => "ticket.ops_state", "operator" => "has changed", "value" => [ ] },
-                { "name" => "ticket.ops_responsible_subject", "operator" => "has changed", "value" => [ ] }
+                { "name" => "ticket.ops_responsible_subject", "operator" => "has changed", "value" => [ ] },
+                { "name" => "ticket.ops_investment", "operator" => "has changed", "value" => [ ] },
               ]
             }
           ]
@@ -637,7 +669,7 @@ namespace :ops do
             { "name" => "article.type_id", "operator" => "is", "value" => [Ticket::Article::Type.find_by(name: "note").id] },
             { "name" => "article.internal", "operator" => "is", "value" => ["false"] },
             { "name" => "article.action", "operator" => "is", "value" => "create" },
-            { "name" => "article.created_by_id", "operator" => "is not", "value" => [ User.find_by(firstname: "Aplikácia", lastname: "Odkaz pre starostu").id ] }
+            { "name" => "article.created_by_id", "operator" => "is not", "value" => [ tech_user.id ] }
           ]
         }
         trigger.perform = { "notification.webhook" => { "webhook_id" => Webhook.find_by(name: 'OPS - article.created').id } }
@@ -726,6 +758,77 @@ namespace :ops do
         trigger.localization = "system"
         trigger.timezone = "system"
         trigger.note = ""
+        trigger.activator = "action"
+        trigger.execution_condition_mode = "selective"
+        trigger.active = true
+        trigger.updated_by_id = 1
+        trigger.created_by_id = 1
+      end.save!
+
+      Trigger.find_or_initialize_by(name: 'OPS - zmena zodpovednosti naspäť na tento subjekt - notifikácia').tap do |trigger|
+        trigger.condition = {
+          "operator" => "AND",
+          "conditions" => [
+            { "name" => "ticket.origin", "operator" => "is", "value" => [ "ops" ] },
+            { "name" => "ticket.ops_responsible_subject", "operator" => "has changed", "value" => [ ] },
+            {
+              "name" => "ticket.ops_responsible_subject",
+              "operator" => "is",
+              "value" => [
+                {
+                  "label" => ENV.fetch('OPS_RESPONSIBLE_SUBJECT'),
+                  "value" => ENV.fetch('OPS_RESPONSIBLE_SUBJECT_ID')
+                }
+              ]
+            },
+            { "name" => "ticket.updated_by_id", "operator" => "is", "value" => [ tech_user.id ] },
+          ]
+        }
+        trigger.perform = {
+          "article.note" => {
+            "body" => "Podnet bol opäť priradený #{ENV.fetch('OPS_RESPONSIBLE_SUBJECT')}.",
+            "internal" => "false",
+            "subject" => "Podnet bol opäť priradený",
+            "sender" => "Customer"
+          },
+          "ticket.state_id" => { "value" => Ticket::State.find_by(name: "new").id.to_s },
+        }
+        trigger.note = "NEMENIŤ - spúšťač používa špeciálne parametre, ktoré budú zmazané pri úprave spúšťača."
+        trigger.activator = "action"
+        trigger.execution_condition_mode = "selective"
+        trigger.active = true
+        trigger.updated_by_id = 1
+        trigger.created_by_id = 1
+      end.save!
+
+      Trigger.find_or_initialize_by(name: 'OPS - zmena zodpovednosti na iný subjekt - notifikácia').tap do |trigger|
+        trigger.condition = {
+          "operator" => "AND",
+          "conditions" => [
+            { "name" => "ticket.origin", "operator" => "is", "value" => [ "ops" ] },
+            { "name" => "ticket.ops_responsible_subject", "operator" => "has changed", "value" => [ ] },
+            {
+              "name" => "ticket.ops_responsible_subject",
+              "operator" => "is not",
+              "value" => [
+                {
+                  "label" => ENV.fetch('OPS_RESPONSIBLE_SUBJECT'),
+                  "value" => ENV.fetch('OPS_RESPONSIBLE_SUBJECT_ID')
+                }
+              ]
+            },
+          ]
+        }
+        trigger.perform = {
+          "article.note" => {
+            "body" => "Podnet bol priradený inému subjektu.",
+            "internal" => "true",
+            "subject" => "Podnet bol priradený inému subjektu",
+          },
+          "ticket.state_id" => { "value" => Ticket::State.find_by(name: "pending close").id.to_s },
+          "ticket.pending_time" => { "operator" => "relative", "value" => "5", "range" => "day" },
+        }
+        trigger.note = "NEMENIŤ - spúšťač používa špeciálne parametre, ktoré budú zmazané pri úprave spúšťača."
         trigger.activator = "action"
         trigger.execution_condition_mode = "selective"
         trigger.active = true
