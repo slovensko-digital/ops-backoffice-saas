@@ -29,13 +29,13 @@ def setup_admin_user
   Service::User::AddFirstAdmin.new.execute(user_data: admin_user_data, request: request)
 end
 
-def setup_technical_user(role_id)
+def setup_technical_user(role_ids)
   Rails.logger.info "Setting up technical user..."
   params = {
     "firstname":"Aplikácia",
     "lastname":"Odkaz pre starostu",
     "note":"",
-    "role_ids": [ role_id ],
+    "role_ids": role_ids,
     "active":true,
     "vip":false,
     "id":"c-3",
@@ -91,6 +91,7 @@ def create_ops_tech_account_role
   ops_tech_account_role.permission_grant('ticket.agent')
   ops_tech_account_role.permission_grant('user_preferences.access_token')
   ops_tech_account_role.groups << Group.find_by(name: 'Incoming')
+  ops_tech_account_role.groups << Group.find_by(name: 'Import Odkazprestarstu')
   ops_tech_account_role.save!
   ops_tech_account_role
 end
@@ -175,12 +176,21 @@ namespace :ops do
       Rails.logger.info "Set Incoming group as default for new web tickets..."
       Setting.set('customer_ticket_create_group_ids', [ incoming_group.id ])
 
+      Rails.logger.info "Create Import Odkazprestarstu group..."
+      import_group = Group.find_or_initialize_by(name: 'Import Odkazprestarstu').tap do |group|
+        group.note = __('Podnety importované zo staršej verzie Odkazu pre starostu.')
+        group.active = true
+        group.updated_by_id = 1
+        group.created_by_id = 1
+      end
+      import_group.save!
+
       setup_elastic if ENV['ELASTICSEARCH_ENABLED'] == 'true'
 
       create_ops_user_roles
       ops_tech_role = create_ops_tech_account_role
 
-      setup_technical_user(ops_tech_role.id) unless User.count > 3
+      setup_technical_user([ ops_tech_role.id, Role.find_by(name: "Správca podnetov pre OPS").id ]) unless User.count > 3
 
       update_agent_role_permissions
 
@@ -864,7 +874,7 @@ namespace :ops do
           firstname: "Agent",
           lastname: "Example",
           role_ids: [Role.find_by(name: 'Agent').id, Role.find_by(name: 'Správca podnetov pre OPS').id],
-          group_ids: [incoming_group.id],
+          group_ids: [incoming_group.id, import_group.id],
         )
 
         ticket = Ticket.create!(
