@@ -91,7 +91,7 @@ def create_ops_tech_account_role
   ops_tech_account_role.permission_grant('ticket.agent')
   ops_tech_account_role.permission_grant('user_preferences.access_token')
   ops_tech_account_role.groups << Group.find_by(name: 'Incoming')
-  ops_tech_account_role.groups << Group.find_by(name: 'Import Odkaz pre starostu')
+  ops_tech_account_role.groups << Group.find_by(name: 'Stará verzia Odkaz pre starostu')
   ops_tech_account_role.save!
   ops_tech_account_role
 end
@@ -176,8 +176,8 @@ namespace :ops do
       Rails.logger.info "Set Incoming group as default for new web tickets..."
       Setting.set('customer_ticket_create_group_ids', [ incoming_group.id ])
 
-      Rails.logger.info "Create Import Odkaz pre starostu group..."
-      import_group = Group.find_or_initialize_by(name: 'Import Odkaz pre starostu').tap do |group|
+      Rails.logger.info "Create Stará verzia Odkaz pre starostu group..."
+      import_group = Group.find_or_initialize_by(name: 'Stará verzia Odkaz pre starostu').tap do |group|
         group.note = __('Podnety importované zo staršej verzie Odkazu pre starostu.')
         group.active = true
         group.updated_by_id = 1
