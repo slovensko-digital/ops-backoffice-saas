@@ -1,4 +1,4 @@
-FROM zammad/zammad-docker-compose:6.4.1-49
+FROM zammad/zammad-docker-compose:6.5.0-47
 
 # allow creation of customer articles in triggers
 RUN sed -i "s/Ticket::Article::Sender.find_by(name: 'System')/Ticket::Article::Sender.find_by(name: note[:sender] || 'System')/" app/models/ticket/perform_changes/action/article_note.rb
