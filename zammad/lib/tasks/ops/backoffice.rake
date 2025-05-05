@@ -499,26 +499,6 @@ namespace :ops do
         flow.created_by_id = 1
       end.save!
 
-      # hide state and group from customer ticket create_middle screen
-      CoreWorkflow.find_or_initialize_by(name: 'OPS - skryť stav a skupinu z obrazovky vytvárania tiketu').tap do |flow|
-        flow.object = "Ticket"
-        flow.preferences = { "screen" => [ "create_middle" ] }
-        flow.condition_saved = {}
-        flow.condition_selected = {
-          "session.role_ids" => { "operator" => "is", "value" => [ Role.find_by(name: "Customer").id ] }
-        },
-        flow.perform = {
-          "ticket.state_id" => { "operator" => "hide", "hide" => "true" },
-          "ticket.group_id" => { "operator" => "hide", "hide" => "true" }
-        }
-        flow.active = true
-        flow.stop_after_match = false
-        flow.changeable = true
-        flow.priority = 100
-        flow.updated_by_id = 1
-        flow.created_by_id = 1
-      end.save!
-
       # allow only certain ops_states to be selected
       CoreWorkflow.find_or_initialize_by(name: 'ops - only allow certain ops_states').tap do |flow|
         flow.object = "Ticket"

@@ -32,6 +32,13 @@ First time setup of staging `staremesto-ba`:
 export BACKOFFICE_PREFIX=staremesto-ba
 kamal build push -d staging
 kamal accessory boot -d staging all
-kamal zammad_init -d staging
+kamal deploy -P -d staging
+```
+
+Update deploy:
+```
+export BACKOFFICE_PREFIX=staremesto-ba
+kamal build push -d staging
+kamal accessory reboot -d staging all
 kamal deploy -P -d staging
 ```

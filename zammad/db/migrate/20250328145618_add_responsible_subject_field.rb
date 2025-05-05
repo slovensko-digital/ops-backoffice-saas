@@ -15,7 +15,7 @@ class AddResponsibleSubjectField < ActiveRecord::Migration[6.1]
         search_result_value_key: "id",
         search_result_label_key: "name",
         options: {},
-        default: '',
+        default: {},
         null: true,
         nulloption: true,
       },
