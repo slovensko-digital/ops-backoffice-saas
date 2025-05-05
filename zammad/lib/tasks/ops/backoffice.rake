@@ -144,6 +144,7 @@ namespace :ops do
         Ticket::Article::Type.find_by_name(:note).update!(communication: true)
 
         Rails.logger.info "Setting access control..."
+        Setting.set('user_create_account', false) # Disable user creation via web interface
         Setting.set('api_password_access', false) # Disable password access to REST API
         Setting.set('auth_third_party_auto_link_at_inital_login', true)
         Setting.set('auth_third_party_no_create_user', true)
