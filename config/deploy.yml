@@ -72,6 +72,7 @@ env: &env
     - ZAMMAD_ELASTICSEARCH_USER
     - ZAMMAD_ELASTICSEARCH_PASSWORD
     - WEBHOOK_SECRET
+    - S3_URL
 
 aliases:
   console: app exec --interactive --reuse "/docker-entrypoint.sh bin/rails console"
