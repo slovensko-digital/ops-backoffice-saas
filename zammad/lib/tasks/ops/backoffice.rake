@@ -390,9 +390,6 @@ namespace :ops do
         flow.condition_saved = { "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] } }
         flow.condition_selected = {}
         flow.perform = {
-          "ticket.ops_category" => { "operator" => "hide", "hide" => "true" },
-          "ticket.ops_subcategory" => { "operator" => "hide", "hide" => "true" },
-          "ticket.ops_subtype" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_issue_type" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_likes_count" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_state" => { "operator" => "hide", "hide" => "true" }
@@ -492,6 +489,63 @@ namespace :ops do
           "ticket.ops_issue_type" => { "operator" => "show", "show" => "true" },
           "ticket.ops_investment" => { "operator" => "show", "show" => "true" },
         }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "show", "show" => "true" }] }.to_h)
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 99
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      CoreWorkflow.find_or_initialize_by(name: 'ops - show ops_category for manual ticket if present').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
+          "ticket.ops_category" => { "operator" => "is not", "value" => [ "" ] }
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_category" => { "operator" => "show", "show" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 99
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      CoreWorkflow.find_or_initialize_by(name: 'ops - show ops_subcategory for manual ticket if present').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
+          "ticket.ops_subcategory" => { "operator" => "is not", "value" => [ "" ] }
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_subcategory" => { "operator" => "show", "show" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 99
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      CoreWorkflow.find_or_initialize_by(name: 'ops - show ops_subtype for manual ticket if present').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
+          "ticket.ops_subtype" => { "operator" => "is not", "value" => [ "" ] }
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_subtype" => { "operator" => "show", "show" => "true" }
+        }
         flow.active = true
         flow.stop_after_match = false
         flow.changeable = false
