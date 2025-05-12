@@ -24,3 +24,15 @@
 .avatar:has(> .icon-logo) {
     background-color: inherit !important;
 }
+
+/* New ticket */
+
+/* Hide phone out ticket */
+ul > li[data-type='phone-out'] {
+    display: none;
+}
+
+/* Hide email out ticket */
+ul > li[data-type='email-out'] {
+    display: none;
+}
