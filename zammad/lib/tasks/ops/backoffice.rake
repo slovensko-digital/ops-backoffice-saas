@@ -96,6 +96,61 @@ def create_ops_tech_account_role
   ops_tech_account_role
 end
 
+def create_subject_admin_role
+  Rails.logger.info "Create Administrátor systému role..."
+  role = Role.find_or_initialize_by(name: 'Administrátor systému').tap do |role|
+    role.active = true
+    role.updated_by_id = 1
+    role.created_by_id = 1
+  end
+
+  role.permission_grant("admin.channel_email")
+  role.permission_grant("admin.channel_facebook")
+  role.permission_grant("admin.channel_formular")
+  role.permission_grant("admin.channel_google")
+  role.permission_grant("admin.channel_chat")
+  role.permission_grant("admin.channel_microsoft_graph")
+  role.permission_grant("admin.channel_microsoft365")
+  role.permission_grant("admin.channel_sms")
+  role.permission_grant("admin.channel_telegram")
+  role.permission_grant("admin.channel_twitter")
+  role.permission_grant("admin.channel_web")
+  role.permission_grant("admin.channel_whatsapp")
+  role.permission_grant("admin.integration")
+  role.permission_grant("admin.core_workflow")
+  role.permission_grant("admin.translation")
+  role.permission_grant("admin.data_privacy")
+  role.permission_grant("admin.monitoring")
+  role.permission_grant("admin.branding")
+  role.permission_grant("admin.calendar")
+  role.permission_grant("admin.group")
+  role.permission_grant("admin.checklist")
+  role.permission_grant("admin.knowledge_base")
+  role.permission_grant("admin.macro")
+  role.permission_grant("admin.overview")
+  role.permission_grant("admin.role")
+  role.permission_grant("admin.scheduler")
+  role.permission_grant("admin.sla")
+  role.permission_grant("admin.security")
+  role.permission_grant("admin.tag")
+  role.permission_grant("admin.template")
+  role.permission_grant("admin.text_module")
+  role.permission_grant("admin.time_accounting")
+  role.permission_grant("admin.trigger")
+  role.permission_grant("admin.user")
+  role.permission_grant("admin.ticket")
+  role.permission_grant("admin.ticket_auto_assignment")
+  role.permission_grant("admin.ticket_duplicate_detection")
+  role.permission_grant("admin.ticket_priority")
+  role.permission_grant("admin.ticket_state")
+  role.permission_grant("knowledge_base.editor")
+  role.permission_grant("report")
+  role.permission_grant("admin.report_profile")
+  role.permission_grant("user_preferences")
+
+  role.save!
+end
+
 def update_agent_role_permissions
   Rails.logger.info "Update agent role permissions..."
   agent_role = Role.find_by(name: 'Agent')
@@ -194,6 +249,8 @@ namespace :ops do
       setup_technical_user([ ops_tech_role.id, Role.find_by(name: "Správca podnetov pre OPS").id ]) unless User.count > 3
 
       update_agent_role_permissions
+
+      create_subject_admin_role
 
       # add ops readonly attributes to ticket
       READ_ONLY_ATTRIBUTES.each do |name, title, position, shown|
@@ -390,9 +447,6 @@ namespace :ops do
         flow.condition_saved = { "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] } }
         flow.condition_selected = {}
         flow.perform = {
-          "ticket.ops_category" => { "operator" => "hide", "hide" => "true" },
-          "ticket.ops_subcategory" => { "operator" => "hide", "hide" => "true" },
-          "ticket.ops_subtype" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_issue_type" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_likes_count" => { "operator" => "hide", "hide" => "true" },
           "ticket.ops_state" => { "operator" => "hide", "hide" => "true" }
@@ -500,6 +554,63 @@ namespace :ops do
         flow.created_by_id = 1
       end.save!
 
+      CoreWorkflow.find_or_initialize_by(name: 'ops - show ops_category for manual ticket if present').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
+          "ticket.ops_category" => { "operator" => "is not", "value" => [ "" ] }
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_category" => { "operator" => "show", "show" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 99
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      CoreWorkflow.find_or_initialize_by(name: 'ops - show ops_subcategory for manual ticket if present').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
+          "ticket.ops_subcategory" => { "operator" => "is not", "value" => [ "" ] }
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_subcategory" => { "operator" => "show", "show" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 99
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      CoreWorkflow.find_or_initialize_by(name: 'ops - show ops_subtype for manual ticket if present').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
+          "ticket.ops_subtype" => { "operator" => "is not", "value" => [ "" ] }
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_subtype" => { "operator" => "show", "show" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 99
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
       # allow only certain ops_states to be selected
       CoreWorkflow.find_or_initialize_by(name: 'ops - only allow certain ops_states').tap do |flow|
         flow.object = "Ticket"
@@ -577,6 +688,27 @@ namespace :ops do
         flow.updated_by_id = 1
         flow.created_by_id = 1
       end.save!
+
+      CoreWorkflow.find_or_initialize_by(name: 'OPS - Zobraz ID dopytu v prehľade').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_issue_identifier" => { "operator" => [ "set_readonly", "show" ],
+            "set_readonly" => "true",
+            "show" => "true"
+          },
+        }
+        flow.active = false
+        flow.stop_after_match = false
+        flow.changeable = true
+        flow.priority = 50
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save! unless CoreWorkflow.where(name: 'OPS - Zobraz ID dopytu v prehľade').exists?
 
 
       # add ticket.updated webhook
