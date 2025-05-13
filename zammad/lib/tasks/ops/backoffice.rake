@@ -272,8 +272,8 @@ namespace :ops do
               'ticket.agent' => { shown: shown }
             },
             edit: {
-              'ticket.customer' => { shown: true },
-              'ticket.agent' => { shown: true }
+              'ticket.customer' => { shown: shown },
+              'ticket.agent' => { shown: shown }
             }
           },
           position: position,
@@ -526,7 +526,7 @@ namespace :ops do
         }
         flow.active = true
         flow.stop_after_match = false
-        flow.changeable = true
+        flow.changeable = false
         flow.priority = 120
         flow.updated_by_id = 1
         flow.created_by_id = 1
@@ -542,6 +542,7 @@ namespace :ops do
           "ticket.ops_responsible_subject" => { "operator" => "show", "show" => "true" },
           "ticket.address_lat" => { "operator" => "show", "show" => "true" },
           "ticket.address_lon" => { "operator" => "show", "show" => "true" },
+          "ticket.address_postcode" => { "operator" => "show", "show" => "true" },
           "ticket.ops_portal_url" => { "operator" => "show", "show" => "true" },
           "ticket.ops_issue_type" => { "operator" => "show", "show" => "true" },
           "ticket.ops_investment" => { "operator" => "show", "show" => "true" },
@@ -559,7 +560,7 @@ namespace :ops do
         flow.preferences = { "screen" => [ "edit" ] }
         flow.condition_saved = {
           "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
-          "ticket.ops_category" => { "operator" => "is not", "value" => [ "" ] }
+          "ticket.ops_category" => { "operator" => "is set", "value" => [] }
         }
         flow.condition_selected = {}
         flow.perform = {
@@ -578,7 +579,7 @@ namespace :ops do
         flow.preferences = { "screen" => [ "edit" ] }
         flow.condition_saved = {
           "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
-          "ticket.ops_subcategory" => { "operator" => "is not", "value" => [ "" ] }
+          "ticket.ops_subcategory" => { "operator" => "is set", "value" => [] }
         }
         flow.condition_selected = {}
         flow.perform = {
@@ -597,7 +598,7 @@ namespace :ops do
         flow.preferences = { "screen" => [ "edit" ] }
         flow.condition_saved = {
           "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
-          "ticket.ops_subtype" => { "operator" => "is not", "value" => [ "" ] }
+          "ticket.ops_subtype" => { "operator" => "is set", "value" => [] }
         }
         flow.condition_selected = {}
         flow.perform = {

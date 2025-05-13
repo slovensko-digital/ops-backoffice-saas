@@ -35,7 +35,7 @@ class OpsChangeOpsIssueTypeToSelect < ActiveRecord::Migration[7.0]
           'ticket.customer' => { shown: false }
         }
       },
-      position: 22,
+      position: 15,
       created_by_id: 1,
       updated_by_id: 1
     )

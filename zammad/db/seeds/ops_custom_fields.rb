@@ -136,7 +136,7 @@ ObjectManager::Attribute.add(
   active: true,
   screens: {
     edit: {
-      'ticket.agent' => { shown: true }
+      'ticket.agent' => { shown: false }
     },
   },
   position: 58,
@@ -202,7 +202,7 @@ ObjectManager::Attribute.add(
       'ticket.customer' => { shown: false }
     }
   },
-  position: 22,
+  position: 15,
   created_by_id: 1,
   updated_by_id: 1
 )
