@@ -79,7 +79,7 @@ aliases:
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
   dbc: app exec --interactive --reuse "/docker-entrypoint.sh bin/rails dbconsole"
-  reindex_elastic: app exec -r worker -p -i --reuse "/docker-entrypoint.sh bin/rake zammad:searchindex:rebuild"
+  reindex_elastic: app exec -r worker -p -i --reuse "/docker-entrypoint.sh bin/rake zammad:searchindex:rebuild[8]"
 
 accessories:
   railsserver: &accessory-hack
