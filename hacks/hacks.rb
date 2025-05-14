@@ -12,7 +12,7 @@ end
 
 # Append ops seeds to the end of the list
 replace_file_with('db/seeds.rb') do |content|
-  content.gsub(/(seeds = %w\[.*)\]/, '\1 ops_custom_fields]')
+  content.gsub(/(seeds = %w\[.*)\]/, '\1 ops_custom_settings ops_custom_fields]')
 end
 
 # change logo
