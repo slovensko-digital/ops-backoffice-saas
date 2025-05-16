@@ -1,9 +1,6 @@
 x-load-env:
-  - "<% require 'dotenv'; Dotenv.load('.env.' + ENV.fetch('KAMAL_DESTINATION') + '.' + ENV.fetch('BACKOFFICE_PREFIX')) %>"
+  - "<% require 'dotenv'; Dotenv.load('.env.' + ENV.fetch('KAMAL_DESTINATION')) %>"
 
-service: "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>"
-
-image: "sd/ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>"
 
 servers:
   web:
@@ -25,51 +22,36 @@ proxy:
   healthcheck:
     path: /
     interval: 10
-    timeout: 90
 
 env: &env
   clear:
-    SERVICE_NAME: "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>"
-
     BACKGROUND_SERVICES_LOG_TO_STDOUT: 1
-    POSTGRESQL_DB: "ops_backoffice_<%= ENV.fetch('BACKOFFICE_PREFIX').gsub(/-/, '_') %>_staging"
-    POSTGRESQL_HOST: host.docker.internal
-    POSTGRESQL_USER: "ops_backoffice_<%= ENV.fetch('BACKOFFICE_PREFIX').gsub(/-/, '_') %>"
-    POSTGRESQL_OPTIONS: "?pool=50"
     RAILS_LOG_TO_STDOUT: true
     RAILS_SERVE_STATIC_FILES: true
-    REDIS_URL: "redis://ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>-redis:6379/1"
     ZAMMAD_PROCESS_DELAYED_JOBS_WORKERS: 1
     ZAMMAD_PROCESS_SCHEDULED_JOBS_WORKERS: 1
-    
     ELASTICSEARCH_ENABLED: true
-    ELASTICSEARCH_HOST: <%= ENV.fetch('ELASTICSEARCH_HOST') %>
+    ELASTICSEARCH_HOST: ops-triage-zammad-elastic
     ELASTICSEARCH_PORT: 9200
     ELASTICSEARCH_SCHEMA: http
-    ELASTICSEARCH_NAMESPACE: "ops-backoffice-zammad-<%= ENV.fetch('BACKOFFICE_PREFIX') %>"
-
+    ELASTICSEARCH_REINDEX: false
     POSTGRESQL_DB_CREATE: false
+    HTTP_TYPE: https
 
-    HTTP_TYPE: "https"
-    FQDN: <%= ENV.fetch('FQDN') %>
-    PRODUCT_NAME: <%= ENV.fetch('PRODUCT_NAME') %>
-    ORGANIZATION: <%= ENV.fetch('ORGANIZATION') %>
-
-    WEBHOOK_TENANT_ID: <%= ENV.fetch('WEBHOOK_TENANT_ID') %>
-    OPS_CONNECTOR_URL: <%= ENV.fetch('OPS_CONNECTOR_URL') %>
-    OPS_PORTAL_URL: <%= ENV.fetch('OPS_PORTAL_URL') %>
+    ADMIN_EMAIL: <%= ENV['ADMIN_EMAIL'] %>
+    ADMIN_FIRSTNAME: Superadmin
+    ADMIN_LASTNAME: OPS
+    DEFAULT_LOCALE: sk
+    RAILS_LOG_LEVEL: <%= ENV.fetch('RAILS_LOG_LEVEL', 'info') %>
+    Z_LOCALES: <%= ENV.fetch('Z_LOCALES', 'sk:en-us') %>
 
   secret:
     - RAILS_MASTER_KEY
     - POSTGRESQL_PASS
-    - ADMIN_EMAIL
     - ADMIN_PASSWORD
-    - ADMIN_FIRSTNAME
-    - ADMIN_LASTNAME
     - API_TOKEN
     - GOOGLE_OAUTH2_CLIENT_ID
     - GOOGLE_OAUTH2_CLIENT_SECRET
-    - ZAMMAD_ELASTICSEARCH_USER
     - ZAMMAD_ELASTICSEARCH_PASSWORD
     - WEBHOOK_SECRET
     - S3_URL
@@ -79,16 +61,22 @@ aliases:
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
   dbc: app exec --interactive --reuse "/docker-entrypoint.sh bin/rails dbconsole"
-  reindex_elastic: app exec -r worker -p -i --reuse "/docker-entrypoint.sh bin/rake zammad:searchindex:rebuild"
+  reindex_elastic: app exec -r worker -p -i --reuse "/docker-entrypoint.sh bin/rake zammad:searchindex:rebuild[8]"
+
+registry: &registry
+  server: registry.dev.slovensko.digital
+  username:
+    - KAMAL_REGISTRY_USERNAME
+  password:
+    - KAMAL_REGISTRY_PASSWORD
 
 accessories:
   railsserver: &accessory-hack
-    image: "sd/ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>:<%= `git rev-parse HEAD`.strip %>"
+    registry:
+      <<: *registry
     roles:
       - web
       - worker
-    volumes:
-      - "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>-storage:/opt/zammad/storage"
     options:
       "add-host": host.docker.internal:host-gateway
     env:
@@ -107,5 +95,12 @@ accessories:
     directories:
       - data:/data
 
-volumes:
-  - "ops-backoffice-<%= ENV.fetch('BACKOFFICE_PREFIX') %>-storage:/opt/zammad/storage"
+builder:
+  arch: amd64
+  remote: ssh://kamal@dev.slovensko.digital
+  cache:
+    type: registry
+    options: mode=max,image-manifest=true,oci-mediatypes=true
+
+ssh:
+  user: kamal
