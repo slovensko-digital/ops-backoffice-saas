@@ -272,8 +272,8 @@ namespace :ops do
               'ticket.agent' => { shown: shown }
             },
             edit: {
-              'ticket.customer' => { shown: true },
-              'ticket.agent' => { shown: true }
+              'ticket.customer' => { shown: shown },
+              'ticket.agent' => { shown: shown }
             }
           },
           position: position,
@@ -354,8 +354,8 @@ namespace :ops do
         active: true,
         screens: {
           edit: {
-            'ticket.agent' => { shown: true },
-            'ticket.customer' => { shown: true },
+            'ticket.agent' => { shown: false },
+            'ticket.customer' => { shown: false },
           },
           create_middle: {
             'ticket.agent' => { shown: false },
@@ -402,7 +402,7 @@ namespace :ops do
             'ticket.customer' => { shown: false },
           },
           edit: {
-            'ticket.agent' => { shown: true },
+            'ticket.agent' => { shown: false },
             'ticket.customer' => { shown: false },
           }
         },
@@ -436,25 +436,6 @@ namespace :ops do
         flow.stop_after_match = false
         flow.changeable = false
         flow.priority = 500
-        flow.updated_by_id = 1
-        flow.created_by_id = 1
-      end.save!
-
-      # hide ops attributes from tickets where origin is not ops
-      CoreWorkflow.find_or_initialize_by(name: 'ops - hide ops attributes for non-ops tickets').tap do |flow|
-        flow.object = "Ticket"
-        flow.preferences = { "screen" => [ "create_middle", "edit" ] }
-        flow.condition_saved = { "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] } }
-        flow.condition_selected = {}
-        flow.perform = {
-          "ticket.ops_issue_type" => { "operator" => "hide", "hide" => "true" },
-          "ticket.ops_likes_count" => { "operator" => "hide", "hide" => "true" },
-          "ticket.ops_state" => { "operator" => "hide", "hide" => "true" }
-        }
-        flow.active = true
-        flow.stop_after_match = false
-        flow.changeable = false
-        flow.priority = 100
         flow.updated_by_id = 1
         flow.created_by_id = 1
       end.save!
@@ -526,7 +507,7 @@ namespace :ops do
         }
         flow.active = true
         flow.stop_after_match = false
-        flow.changeable = true
+        flow.changeable = false
         flow.priority = 120
         flow.updated_by_id = 1
         flow.created_by_id = 1
@@ -535,17 +516,67 @@ namespace :ops do
       CoreWorkflow.find_or_initialize_by(name: 'ops - show ops attributes for ops tickets').tap do |flow|
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "edit" ] }
-        flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
+          "ticket.ops_issue_type" => { "operator" => "is", "value" => [ "issue", "question" ] }
+        }
         flow.condition_selected = {}
         flow.perform = {
           "ticket.ops_likes_count" => { "operator" => "show", "show" => "true" },
+          "ticket.ops_state" => { "operator" => "show", "show" => "true" },
           "ticket.ops_responsible_subject" => { "operator" => "show", "show" => "true" },
           "ticket.address_lat" => { "operator" => "show", "show" => "true" },
           "ticket.address_lon" => { "operator" => "show", "show" => "true" },
+          "ticket.address_postcode" => { "operator" => "show", "show" => "true" },
           "ticket.ops_portal_url" => { "operator" => "show", "show" => "true" },
           "ticket.ops_issue_type" => { "operator" => "show", "show" => "true" },
           "ticket.ops_investment" => { "operator" => "show", "show" => "true" },
         }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "show", "show" => "true" }] }.to_h)
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 99
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      CoreWorkflow.find_or_initialize_by(name: 'ops - setup ops attributes for ops praises').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
+          "ticket.ops_issue_type" => { "operator" => "is", "value" => [ "praise" ] }
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_likes_count" => { "operator" => "show", "show" => "true" },
+          "ticket.ops_state" => { "operator" => "show", "show" => "true" },
+          "ticket.ops_issue_type" => { "operator" => "show", "show" => "true" },
+          "ticket.address_municipality" => { "operator" => "hide", "hide" => "true" },
+          "ticket.address_municipality_district" => { "operator" => "hide", "hide" => "true" },
+          "ticket.address_street" => { "operator" => "hide", "hide" => "true" },
+          "ticket.address_house_number" => { "operator" => "hide", "hide" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 99
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      CoreWorkflow.find_or_initialize_by(name: 'ops - show ops portal url for ops public praises').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
+          "ticket.ops_issue_type" => { "operator" => "is", "value" => [ "praise" ] },
+          "ticket.ops_state" => { "operator" => "is", "value" => [ "resolved" ] },
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_portal_url" => { "operator" => "show", "show" => "true" },
+        }
         flow.active = true
         flow.stop_after_match = false
         flow.changeable = false
@@ -559,7 +590,7 @@ namespace :ops do
         flow.preferences = { "screen" => [ "edit" ] }
         flow.condition_saved = {
           "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
-          "ticket.ops_category" => { "operator" => "is not", "value" => [ "" ] }
+          "ticket.ops_category" => { "operator" => "is set", "value" => [] }
         }
         flow.condition_selected = {}
         flow.perform = {
@@ -578,7 +609,7 @@ namespace :ops do
         flow.preferences = { "screen" => [ "edit" ] }
         flow.condition_saved = {
           "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
-          "ticket.ops_subcategory" => { "operator" => "is not", "value" => [ "" ] }
+          "ticket.ops_subcategory" => { "operator" => "is set", "value" => [] }
         }
         flow.condition_selected = {}
         flow.perform = {
@@ -597,7 +628,7 @@ namespace :ops do
         flow.preferences = { "screen" => [ "edit" ] }
         flow.condition_saved = {
           "ticket.origin" => { "operator" => "is not", "value" => [ "ops" ] },
-          "ticket.ops_subtype" => { "operator" => "is not", "value" => [ "" ] }
+          "ticket.ops_subtype" => { "operator" => "is set", "value" => [] }
         }
         flow.condition_selected = {}
         flow.perform = {
@@ -634,7 +665,10 @@ namespace :ops do
       CoreWorkflow.find_or_initialize_by(name: 'OPS - povoliť role Správca podnetov pre OPS meniť stav a zodpovedný subjekt pre Odkaz pre starostu').tap do |flow|
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "edit" ] }
-        flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
+          "ticket.ops_issue_type" => { "operator" => "is", "value" => [ "issue", "question" ] }
+        }
         flow.condition_selected = { "session.role_ids" => { "operator" => "is", "value" => [ Role.find_by(name: "Správca podnetov pre OPS").id ] } }
         flow.perform = {
           "ticket.ops_state" => { "operator" => "unset_readonly", "unset_readonly" => "true" },
@@ -762,6 +796,7 @@ namespace :ops do
           "operator" => "AND",
           "conditions" => [
             { "name" => "ticket.origin", "operator" => "is", "value" => [ "ops" ] },
+            { "name" => "ticket.ops_issue_type", "operator" => "is", "value" => [ "issue", "question" ] },
             { "name" => "ticket.updated_by_id", "operator" => "is not", "pre_condition" => "specific", "value" => [ tech_user.id ] },
             { "operator" => "OR", "conditions" => [
                 { "name" => "ticket.ops_state", "operator" => "has changed", "value" => [ ] },
@@ -788,7 +823,8 @@ namespace :ops do
         trigger.condition = {
           "operator" => "AND",
           "conditions" => [
-            { "name" => "ticket.origin", "operator" => "is", "value" => ["ops"] },
+            { "name" => "ticket.origin", "operator" => "is", "value" => [ "ops" ] },
+            { "name" => "ticket.ops_issue_type", "operator" => "is", "value" => [ "issue", "question" ] },
             { "name" => "article.type_id", "operator" => "is", "value" => [Ticket::Article::Type.find_by(name: "note").id] },
             { "name" => "article.internal", "operator" => "is", "value" => ["false"] },
             { "name" => "article.action", "operator" => "is", "value" => "create" },
@@ -810,6 +846,8 @@ namespace :ops do
       # add trigger for more than 10 votes (allow user changes)
       Trigger.find_or_create_by!(name: 'OPS - viac ako 10 hlasov') do |trigger|
         trigger.condition = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
+          "ticket.ops_issue_type" => { "operator" => "is", "value" => [ "issue", "question" ] },
           "ticket.ops_likes_count" => { "operator" => "after (absolute)", "value" => 10 },
           "ticket.tags" => { "operator" => "contains one not", "value" => "10 hlasov" }
         }
@@ -835,6 +873,8 @@ namespace :ops do
       # add trigger for more than 100 votes (allow user changes)
       Trigger.find_or_create_by!(name: 'OPS - viac ako 100 hlasov') do |trigger|
         trigger.condition = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
+          "ticket.ops_issue_type" => { "operator" => "is", "value" => [ "issue", "question" ] },
           "ticket.ops_likes_count" => { "operator" => "after (absolute)", "value" => 100 },
           "ticket.tags" => { "operator" => "contains one not", "value" => "100 hlasov" }
         }
@@ -857,6 +897,26 @@ namespace :ops do
         trigger.updated_by_id = 1
         trigger.created_by_id = 1
       end
+
+      Trigger.find_or_initialize_by(name: 'OPS - upozornenie pri novej pochvale').tap do |trigger|
+        trigger.condition = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
+          "ticket.action" => { "operator" => "is", "value" => "create" },
+          "ticket.ops_issue_type" => { "operator" => "is", "value" => [ "praise" ] }
+        }
+        trigger.perform = {
+          "article.note" => {
+            "body" => "<div>Pochvalu nie je možné komentovať. Ak sem pridáte nejakú odpoveď, nikam sa nepošle.</div>",
+            "internal" => "true",
+            "subject" => "Nová pochvala",
+          }
+        }
+        trigger.activator = "action"
+        trigger.execution_condition_mode = "selective"
+        trigger.active = true
+        trigger.updated_by_id = 1
+        trigger.created_by_id = 1
+      end.save!
 
       # add trigger for sending public agent article via email
       Trigger.find_or_initialize_by(name: 'OPS - email public agent article to customer').tap do |trigger|
@@ -893,6 +953,7 @@ namespace :ops do
           "operator" => "AND",
           "conditions" => [
             { "name" => "ticket.origin", "operator" => "is", "value" => [ "ops" ] },
+            { "name" => "ticket.ops_issue_type", "operator" => "is", "value" => [ "issue", "question" ] },
             { "name" => "ticket.ops_responsible_subject", "operator" => "has changed", "value" => [ ] },
             {
               "name" => "ticket.ops_responsible_subject",
@@ -929,6 +990,7 @@ namespace :ops do
           "operator" => "AND",
           "conditions" => [
             { "name" => "ticket.origin", "operator" => "is", "value" => [ "ops" ] },
+            { "name" => "ticket.ops_issue_type", "operator" => "is", "value" => [ "issue", "question" ] },
             { "name" => "ticket.ops_responsible_subject", "operator" => "has changed", "value" => [ ] },
             {
               "name" => "ticket.ops_responsible_subject",
