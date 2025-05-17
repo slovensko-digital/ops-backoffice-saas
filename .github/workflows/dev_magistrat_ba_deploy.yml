@@ -1,4 +1,4 @@
-name: DEV Malacky Deploy
+name: DEV Magistrat BA Deploy
 
 on:
   workflow_call:
@@ -7,7 +7,7 @@ on:
 jobs:
   dev-deploy:
     runs-on: ubuntu-latest
-    environment: DEV_MALACKY
+    environment: DEV_MAGISTRAT_BA
 
     steps:
       - name: Checkout code
@@ -44,6 +44,6 @@ jobs:
           ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL }}
 
         run: |
-          kamal build push -d dev_malacky
-          kamal accessory reboot -d dev_malacky all
-          kamal deploy -P -d dev_malacky
+          kamal build push -d dev_magistrat_ba
+          kamal accessory reboot -d dev_magistrat_ba all
+          kamal deploy -P -d dev_magistrat_ba
