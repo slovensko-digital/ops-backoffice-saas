@@ -7,7 +7,9 @@ on:
 jobs:
   dev-deploy:
     runs-on: ubuntu-latest
-    environment: DEV_STAREMESTO_BA
+    environment:
+      name: DEV_STAREMESTO_BA
+      url: https://staremesto-ba.ops.dev.slovensko.digital
 
     steps:
       - name: Checkout code
