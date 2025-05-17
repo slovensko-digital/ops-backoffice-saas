@@ -27,7 +27,7 @@ env: &malacky_env
     PRODUCT_NAME: Backoffice
     WEBHOOK_TENANT_ID: 1
     OPS_RESPONSIBLE_SUBJECT: Malacky
-    OPS_RESPONSIBLE_SUBJECT_ID: 118
+    OPS_RESPONSIBLE_SUBJECT_ID: 119
 
     POSTGRESQL_USER: ops_backoffice_malacky
     POSTGRESQL_DB: ops_backoffice_malacky_production
