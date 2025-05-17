@@ -1,6 +1,32 @@
 # Odkaz pre starostu - BackOffice - SaaS
 
-## Deployments
+## How to run it
+
+```
+docker compose up -d --build
+```
+
+App should be available on [http://localhost:8081](http://localhost:8081) after about 30 seconds initially. Default login is:
+
+```
+example@example.org
+PASSword123
+```
+
+Default ENVs are in `.env.sample`. Copy them to `.env` and customize if needed.
+
+### Development
+
+If you want to apply changes to the containers, run this again:
+
+```
+docker compose up -d --build
+```
+
+Wait untill `ops-backoffice-saas-zammad-init` container is done.
+
+
+## Deployments in the wild
 
 ### DEV
 
