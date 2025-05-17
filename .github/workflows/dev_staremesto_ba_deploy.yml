@@ -1,15 +1,13 @@
-name: PROD Malacky Deploy
+name: DEV Stare Mesto BA Deploy
 
 on:
   workflow_call:
   workflow_dispatch:
 
 jobs:
-  prod-deploy:
+  dev-deploy:
     runs-on: ubuntu-latest
-    environment: PROD_MALACKY
-
-    if: ${{ github.ref == 'refs/heads/main' }}
+    environment: DEV_STAREMESTO_BA
 
     steps:
       - name: Checkout code
@@ -40,10 +38,12 @@ jobs:
           S3_URL: ${{ secrets.S3_URL }}
           API_TOKEN: ${{ secrets.API_TOKEN }}
           WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          GOOGLE_OAUTH2_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH2_CLIENT_ID }}
+          GOOGLE_OAUTH2_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH2_CLIENT_SECRET }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL }}
 
         run: |
-          kamal build push -d prod_malacky
-          kamal accessory reboot -d prod_malacky all
-          kamal deploy -P -d prod_malacky
+          kamal build push -d dev_staremesto_ba
+          kamal accessory reboot -d dev_staremesto_ba all
+          kamal deploy -P -d dev_staremesto_ba

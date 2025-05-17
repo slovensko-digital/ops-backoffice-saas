@@ -1,0 +1,51 @@
+service: "ops-backoffice-staremesto-ba"
+
+image: "sd/ops-backoffice-staremesto-ba"
+
+servers:
+  web:
+    hosts:
+      - staremesto-ba.ops.dev.slovensko.digital
+
+  worker:
+    hosts:
+      - staremesto-ba.ops.dev.slovensko.digital
+
+proxy:
+  host: staremesto-ba.ops.dev.slovensko.digital
+
+env: &staremesto_ba_env
+  clear:
+    SERVICE_NAME: ops-backoffice-staremesto-ba
+    FQDN: staremesto-ba.ops.dev.slovensko.digital
+    REDIS_URL: "redis://ops-backoffice-staremesto-ba-redis:6379/1"
+    ELASTICSEARCH_NAMESPACE: ops-backoffice-zammad-staremesto-ba
+    ZAMMAD_ELASTICSEARCH_USER: ops-backoffice-zammad-staremesto-ba
+    OPS_CONNECTOR_URL: https://ops.dev.slovensko.digital
+    OPS_PORTAL_URL: https://ops.dev.slovensko.digital
+    ORGANIZATION: Bratislava - Staré Mesto
+    PRODUCT_NAME: Backoffice
+    WEBHOOK_TENANT_ID: 4
+    OPS_RESPONSIBLE_SUBJECT: MÚ Staré Mesto
+    OPS_RESPONSIBLE_SUBJECT_ID: 1
+
+    POSTGRESQL_USER: ops_backoffice_staremesto_ba
+    POSTGRESQL_DB: ops_backoffice_staremesto_ba_staging
+    POSTGRESQL_HOST: host.docker.internal
+    POSTGRESQL_OPTIONS: "?pool=50"
+
+accessories:
+  railsserver: &accessory-hack
+    image: "sd/ops-backoffice-staremesto-ba:<%= `git rev-parse HEAD`.strip %>"
+    volumes:
+      - "ops-backoffice-staremesto-ba-storage:/opt/zammad/storage"
+    env:
+      <<: *staremesto_ba_env
+    cmd: "zammad-railsserver"
+
+  websocket:
+    <<: *accessory-hack
+    cmd: "zammad-websocket"
+
+volumes:
+  - "ops-backoffice-staremesto-ba-storage:/opt/zammad/storage"
