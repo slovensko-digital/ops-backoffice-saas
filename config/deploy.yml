@@ -1,7 +1,3 @@
-x-load-env:
-  - "<% require 'dotenv'; Dotenv.load('.env.' + ENV.fetch('KAMAL_DESTINATION')) %>"
-
-
 servers:
   web:
     cmd: "/opt/zammad_init_and_nginx.sh"
@@ -38,7 +34,7 @@ env: &env
     POSTGRESQL_DB_CREATE: false
     HTTP_TYPE: https
 
-    ADMIN_EMAIL: <%= ENV['ADMIN_EMAIL'] %>
+    ADMIN_EMAIL: <%= ENV.fetch('ADMIN_EMAIL', 'admin@example.com') %>
     ADMIN_FIRSTNAME: Superadmin
     ADMIN_LASTNAME: OPS
     DEFAULT_LOCALE: sk
@@ -60,7 +56,6 @@ aliases:
   console: app exec --interactive --reuse "/docker-entrypoint.sh bin/rails console"
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
-  dbc: app exec --interactive --reuse "/docker-entrypoint.sh bin/rails dbconsole"
   reindex_elastic: app exec -r worker -p -i --reuse "/docker-entrypoint.sh bin/rake zammad:searchindex:rebuild[8]"
 
 registry: &registry

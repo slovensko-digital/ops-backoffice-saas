@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: DEV_MALACKY
-      url: http://malacky.ops.dev.slovensko.digital
+      url: https://malacky.ops.dev.slovensko.digital
 
     steps:
       - name: Checkout code
