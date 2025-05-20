@@ -232,6 +232,9 @@ namespace :ops do
       Rails.logger.info "Set Incoming group as default for new web tickets..."
       Setting.set('customer_ticket_create_group_ids', [ incoming_group.id ])
 
+      Rails.logger.info "Allowing only 'phone-in' new tickets in UI..."
+      Setting.set('ui_ticket_create_available_types', [ "phone-in" ])
+
       Rails.logger.info "Create Stará verzia Odkaz pre starostu group..."
       import_group = Group.find_or_initialize_by(name: 'Stará verzia Odkaz pre starostu').tap do |group|
         group.note = __('Podnety importované zo staršej verzie Odkazu pre starostu.')
