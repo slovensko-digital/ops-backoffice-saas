@@ -179,6 +179,53 @@ def setup_elastic
   Setting.set('es_index', ENV.fetch('ELASTICSEARCH_NAMESPACE'))
 end
 
+def setup_notifications
+  Setting.set('notification_sender', "#{ENV.fetch('NOTIFICATION_SENDER')} <#{ENV.fetch('NOTIFICATION_SMTP_USER')}>")
+
+  Channel.where(area: "Email::Notification").select{ |ch| ch.options[:outbound][:adapter] == "smtp" }.first.update!(
+    options: {
+      "outbound" => {
+        "adapter" => "smtp",
+        "options" => {
+          "host" => ENV.fetch('NOTIFICATION_SMTP_HOST'),
+          "user" => ENV.fetch('NOTIFICATION_SMTP_USER'),
+          "password" => ENV.fetch('NOTIFICATION_SMTP_PASSWORD'),
+          "port" => ENV.fetch('NOTIFICATION_SMTP_PORT'),
+          "ssl_verify" => true,
+          "domain" => ENV.fetch('FQDN', 'localhost'),
+          "enable_starttls_auto" => true
+        }
+      }
+    },
+    active: true
+  )
+
+  Channel.where(area: "Email::Notification").select{ |ch| ch.options[:outbound][:adapter] == "sendmail" }.first.update!(active: false)
+
+  # Do not send email notifications about updated unassigned tickets to all agents
+  Setting.set(
+    'ticket_agent_default_notifications',
+    {
+      "create" => {
+        "criteria" => { "owned_by_me" => true, "owned_by_nobody" => true, "subscribed" => true, "no" => false },
+        "channel" => { "email" => true, "online" => true }
+      },
+      "update" => {
+        "criteria" => { "owned_by_me" => true, "owned_by_nobody" => false, "subscribed" => true, "no" => false },
+        "channel" => { "email" => true, "online" => true }
+      },
+      "reminder_reached" => {
+        "criteria" => { "owned_by_me" => true, "owned_by_nobody" => false, "subscribed" => false, "no" => false },
+        "channel" => { "email" => true, "online" => true }
+      },
+      "escalation" => {
+        "criteria" => { "owned_by_me" => true, "owned_by_nobody" => false, "subscribed" => false, "no" => false },
+        "channel" => { "email" => true, "online" => true }
+      }
+    }
+  )
+end
+
 namespace :ops do
   namespace :backoffice do
     desc "Migrates backoffice environment"
@@ -254,6 +301,10 @@ namespace :ops do
       update_agent_role_permissions
 
       create_subject_admin_role
+
+      setup_notifications if ENV['NOTIFICATION_SENDER'].present? && ENV['NOTIFICATION_SMTP_PASSWORD'].present? && ENV['NOTIFICATION_SMTP_USER'].present?
+
+      Setting.set("monitoring_token", ENV['MONITORING_TOKEN']) if ENV['MONITORING_TOKEN'].present?
 
       # add ops readonly attributes to ticket
       READ_ONLY_ATTRIBUTES.each do |name, title, position, shown|

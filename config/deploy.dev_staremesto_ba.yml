@@ -29,6 +29,9 @@ env: &staremesto_ba_env
     OPS_RESPONSIBLE_SUBJECT: MÚ Staré Mesto
     OPS_RESPONSIBLE_SUBJECT_ID: 1
 
+    NOTIFICATION_SENDER: "DEV | Staré Mesto | Backoffice"
+    NOTIFICATION_SMTP_USER: noreply-staremesto-ba@ops.dev.slovensko.digital
+
     POSTGRESQL_USER: ops_backoffice_staremesto_ba
     POSTGRESQL_DB: ops_backoffice_staremesto_ba_staging
     POSTGRESQL_HOST: host.docker.internal

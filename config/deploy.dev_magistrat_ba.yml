@@ -29,6 +29,9 @@ env: &magistrat-ba_env
     OPS_RESPONSIBLE_SUBJECT: Hlavné mesto SR Bratislava
     OPS_RESPONSIBLE_SUBJECT_ID: 18
 
+    NOTIFICATION_SENDER: "DEV | Magistrát BA | Backoffice"
+    NOTIFICATION_SMTP_USER: noreply-magistrat-ba@ops.dev.slovensko.digital
+
     POSTGRESQL_USER: ops_backoffice_magistrat_ba
     POSTGRESQL_DB: ops_backoffice_magistrat_ba_staging
     POSTGRESQL_HOST: host.docker.internal

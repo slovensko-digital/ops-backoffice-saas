@@ -29,6 +29,9 @@ env: &malacky_env
     OPS_RESPONSIBLE_SUBJECT: Malacky
     OPS_RESPONSIBLE_SUBJECT_ID: 190
 
+    NOTIFICATION_SENDER: "DEV | Malacky | Backoffice"
+    NOTIFICATION_SMTP_USER: notifikacie-malacky@ops.dev.slovensko.digital
+
     POSTGRESQL_USER: ops_backoffice_malacky
     POSTGRESQL_DB: ops_backoffice_malacky_staging
     POSTGRESQL_HOST: host.docker.internal

@@ -50,6 +50,8 @@ jobs:
           GOOGLE_OAUTH2_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH2_CLIENT_SECRET }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL }}
+          NOTIFICATION_SMTP_PASSWORD: ${{ secrets.NOTIFICATION_SMTP_PASSWORD }}
+          MONITORING_TOKEN: ${{ vars.MONITORING_TOKEN }}
 
         run: |
           kamal build push -d ${{ inputs.environment }}
