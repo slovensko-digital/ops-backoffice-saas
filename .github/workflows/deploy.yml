@@ -1,0 +1,60 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      environment_url:
+        required: true
+        type: string
+    secrets:
+      deploy_key:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: 
+      name: ${{ inputs.environment }}
+      url: ${{ inputs.environment_url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Install Kamal gem
+        run: |
+          KAMAL_VERSION=$(ruby -rbundler -e "puts Bundler.locked_gems.specs.find { |s| s.name == 'kamal' }&.version")
+          gem install kamal -v $KAMAL_VERSION
+
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.OPS_PROD_DEPLOY_KEY }}
+
+      - name: Kamal build, accessory and deploy
+        env:
+          KAMAL_REGISTRY_USERNAME: ${{ secrets.KAMAL_REGISTRY_USERNAME }}
+          KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          ZAMMAD_ELASTICSEARCH_PASSWORD: ${{ secrets.ZAMMAD_ELASTICSEARCH_PASSWORD }}
+          S3_URL: ${{ secrets.S3_URL }}
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          GOOGLE_OAUTH2_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH2_CLIENT_ID }}
+          GOOGLE_OAUTH2_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH2_CLIENT_SECRET }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL }}
+
+        run: |
+          kamal build push -d ${{ inputs.environment }}
+          kamal accessory reboot -d ${{ inputs.environment }} all
+          kamal deploy -P -d ${{ inputs.environment }}
