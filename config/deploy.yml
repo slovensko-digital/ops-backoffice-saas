@@ -34,6 +34,9 @@ env: &env
     POSTGRESQL_DB_CREATE: false
     HTTP_TYPE: https
 
+    NOTIFICATION_SMTP_HOST: smtp.m1.websupport.sk
+    NOTIFICATION_SMTP_PORT: 587
+
     ADMIN_EMAIL: <%= ENV.fetch('ADMIN_EMAIL', 'admin@example.com') %>
     ADMIN_FIRSTNAME: Superadmin
     ADMIN_LASTNAME: OPS
@@ -51,6 +54,8 @@ env: &env
     - ZAMMAD_ELASTICSEARCH_PASSWORD
     - WEBHOOK_SECRET
     - S3_URL
+    - NOTIFICATION_SMTP_PASSWORD
+    - MONITORING_TOKEN
 
 aliases:
   console: app exec --interactive --reuse "/docker-entrypoint.sh bin/rails console"

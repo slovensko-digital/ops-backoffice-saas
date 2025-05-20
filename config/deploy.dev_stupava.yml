@@ -29,6 +29,9 @@ env: &stupava_env
     OPS_RESPONSIBLE_SUBJECT: MÚ Stupava
     OPS_RESPONSIBLE_SUBJECT_ID: 148
 
+    NOTIFICATION_SENDER: "DEV | Stupava | Backoffice"
+    NOTIFICATION_SMTP_USER: notifikacie-stupava@ops.dev.slovensko.digital
+
     POSTGRESQL_USER: ops_backoffice_stupava
     POSTGRESQL_DB: ops_backoffice_stupava_staging
     POSTGRESQL_HOST: host.docker.internal
