@@ -9,9 +9,6 @@ on:
       environment_url:
         required: true
         type: string
-    secrets:
-      deploy_key:
-        required: true
 
 jobs:
   deploy:
