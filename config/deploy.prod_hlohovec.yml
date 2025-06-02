@@ -1,0 +1,54 @@
+service: "ops-backoffice-hlohovec"
+
+image: "sd/ops-backoffice-hlohovec"
+
+servers:
+  web:
+    hosts:
+      - 88.99.99.215
+
+  worker:
+    hosts:
+      - 88.99.99.215
+
+proxy:
+  host: hlohovec.odkazprestarostu.sk
+
+env: &hlohovec_env
+  clear:
+    SERVICE_NAME: ops-backoffice-hlohovec
+    FQDN: hlohovec.odkazprestarostu.sk
+    REDIS_URL: "redis://ops-backoffice-hlohovec-redis:6379/1"
+    ELASTICSEARCH_NAMESPACE: ops-backoffice-zammad-hlohovec
+    ZAMMAD_ELASTICSEARCH_USER: ops-backoffice-zammad-hlohovec
+    OPS_CONNECTOR_URL: https://novy.odkazprestarostu.sk
+    OPS_PORTAL_URL: https://novy.odkazprestarostu.sk
+    ORGANIZATION: Hlohovec
+    PRODUCT_NAME: Backoffice
+    WEBHOOK_TENANT_ID: 3
+    OPS_RESPONSIBLE_SUBJECT: Hlohovec
+    OPS_RESPONSIBLE_SUBJECT_ID: 44
+
+    NOTIFICATION_SENDER: "Hlohovec | Backoffice"
+    NOTIFICATION_SMTP_USER: notifikacie-hlohovec@odkazprestarostu.sk
+
+    POSTGRESQL_USER: ops_backoffice_hlohovec
+    POSTGRESQL_DB: ops_backoffice_hlohovec_production
+    POSTGRESQL_HOST: host.docker.internal
+    POSTGRESQL_OPTIONS: "?pool=50"
+
+accessories:
+  railsserver: &accessory-hack
+    image: "sd/ops-backoffice-hlohovec:<%= `git rev-parse HEAD`.strip %>"
+    volumes:
+      - "ops-backoffice-hlohovec-storage:/opt/zammad/storage"
+    env:
+      <<: *hlohovec_env
+    cmd: "zammad-railsserver"
+
+  websocket:
+    <<: *accessory-hack
+    cmd: "zammad-websocket"
+
+volumes:
+  - "ops-backoffice-hlohovec-storage:/opt/zammad/storage"

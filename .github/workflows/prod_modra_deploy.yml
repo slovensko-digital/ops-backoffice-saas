@@ -1,0 +1,14 @@
+name: PROD Modra Deploy
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod_modra
+      environment_url: https://modra.odkazprestarostu.sk
+
+    secrets: inherit
