@@ -700,7 +700,10 @@ namespace :ops do
       CoreWorkflow.find_or_initialize_by(name: 'ops - only allow certain ops_states').tap do |flow|
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "edit" ] }
-        flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
+          "ticket.ops_state" => { "operator" => "is not", "value" => [ "resolved", "unresolved", "closed" ] }
+        }
         flow.condition_selected = {}
         flow.perform = { "ticket.ops_state" => {
           "operator" => [ "set_fixed_to", "set_mandatory" ],
@@ -711,6 +714,26 @@ namespace :ops do
         flow.stop_after_match = false
         flow.changeable = false
         flow.priority = 100
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      CoreWorkflow.find_or_initialize_by(name: 'ops - set ops_state and responsible subject readonly if final').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
+          "ticket.ops_state" => { "operator" => "is", "value" => [ "resolved", "unresolved", "closed" ] }
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_state" => { "operator" => [ "set_readonly" ], "set_readonly" => "true" },
+          "ticket.ops_responsible_subject" => { "operator" => [ "set_readonly" ], "set_readonly" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 130
         flow.updated_by_id = 1
         flow.created_by_id = 1
       end.save!
