@@ -1,0 +1,14 @@
+name: PROD Banska Bystrica Deploy
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod_banska_bystrica
+      environment_url: https://banska-bystrica.odkazprestarostu.sk
+
+    secrets: inherit

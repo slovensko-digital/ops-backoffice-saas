@@ -1,0 +1,54 @@
+service: "ops-backoffice-banska-bystrica"
+
+image: "sd/ops-backoffice-banska-bystrica"
+
+servers:
+  web:
+    hosts:
+      - 88.99.99.215
+
+  worker:
+    hosts:
+      - 88.99.99.215
+
+proxy:
+  host: banska-bystrica.odkazprestarostu.sk
+
+env: &banska_bystrica_env
+  clear:
+    SERVICE_NAME: ops-backoffice-banska-bystrica
+    FQDN: banska-bystrica.odkazprestarostu.sk
+    REDIS_URL: "redis://ops-backoffice-banska-bystrica-redis:6379/1"
+    ELASTICSEARCH_NAMESPACE: ops-backoffice-zammad-banska-bystrica
+    ZAMMAD_ELASTICSEARCH_USER: ops-backoffice-zammad-banska-bystrica
+    OPS_CONNECTOR_URL: https://novy.odkazprestarostu.sk
+    OPS_PORTAL_URL: https://novy.odkazprestarostu.sk
+    ORGANIZATION: Banská Bystrica
+    PRODUCT_NAME: Backoffice
+    WEBHOOK_TENANT_ID: 5
+    OPS_RESPONSIBLE_SUBJECT: Mesto Banská Bystrica
+    OPS_RESPONSIBLE_SUBJECT_ID: 21
+
+    NOTIFICATION_SENDER: "Banská Bystrica | Backoffice"
+    NOTIFICATION_SMTP_USER: notifikacie-banska-bystrica@odkazprestarostu.sk
+
+    POSTGRESQL_USER: ops_backoffice_banska_bystrica
+    POSTGRESQL_DB: ops_backoffice_banska_bystrica_production
+    POSTGRESQL_HOST: host.docker.internal
+    POSTGRESQL_OPTIONS: "?pool=50"
+
+accessories:
+  railsserver: &accessory-hack
+    image: "sd/ops-backoffice-banska-bystrica:<%= `git rev-parse HEAD`.strip %>"
+    volumes:
+      - "ops-backoffice-banska-bystrica-storage:/opt/zammad/storage"
+    env:
+      <<: *banska_bystrica_env
+    cmd: "zammad-railsserver"
+
+  websocket:
+    <<: *accessory-hack
+    cmd: "zammad-websocket"
+
+volumes:
+  - "ops-backoffice-banska-bystrica-storage:/opt/zammad/storage"

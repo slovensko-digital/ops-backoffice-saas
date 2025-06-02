@@ -1,0 +1,14 @@
+name: PROD Hlohovec Deploy
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod_hlohovec
+      environment_url: https://hlohovec.odkazprestarostu.sk
+
+    secrets: inherit
