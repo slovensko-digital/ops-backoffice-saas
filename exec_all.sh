@@ -4,7 +4,7 @@
 # Usage: ./exec_all.sh -d <prod | dev> -c <command> [--shell]
 #
 # Options:
-#   -d, --destination <prod | dev>  Specify the destination environment (prod or dev)
+#   -d, --destination <prod | dev>   Specify the destination environment (prod or dev)
 #   -c, --command <command>          Specify the command to execute
 #   --shell                          Execute a custom system command instead of predefined commands
 #   -h, --help                       Show this help message
@@ -21,7 +21,7 @@ usage() {
     echo "Usage: $0 -d <prod | dev> -c <command> [--shell]"
     echo ""
     echo "Options:"
-    echo "  -d, --destination <prod | dev>  Specify the destination environment (prod or dev)"
+    echo "  -d, --destination <prod | dev>   Specify the destination environment (prod or dev)"
     echo "  -c, --command <command>          Specify the command to execute"
     echo "  --shell                          Execute a custom system command instead of predefined commands"
     echo "  -h, --help                       Show this help message"

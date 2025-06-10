@@ -51,6 +51,19 @@ kamal logs -d dev_staremesto_ba             # logs of primary web container
 kamal reindex_elastic -d dev_staremesto_ba  # reindex to elasticsearch
 ```
 
+## Run command in all destinations
+
+```
+./exec_all.sh -d dev -c maintenance_on
+```
+
+```
+./exec_all.sh -d dev --shell -c "date"
+```
+
+See `./exec_all.sh --help`
+
+
 ## Deploy action
 
 All environments are deployed via manual `workflow_dispatch` on their GitHub actions. See `Actions` -> `(left menu)` -> `(corresponding deploy action)` -> `Run workflow` -> `Run workflow`.
