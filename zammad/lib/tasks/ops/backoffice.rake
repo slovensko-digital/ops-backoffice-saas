@@ -51,7 +51,7 @@ def setup_technical_user(role_ids)
     persistent: true,
     user_id:    user.id,
     name: "Token 2",
-    preferences: {"permission"=>["admin.user", "report", "ticket.agent"]}
+    preferences: {"permission"=>["admin.user", "report", "ticket.agent", "admin.group", "admin.role"]}
   )
   token.token = ENV.fetch('API_TOKEN', SecureRandom.urlsafe_base64(48))
   token.save!
@@ -88,6 +88,8 @@ def create_ops_tech_account_role
     role.created_by_id = 1
   end
   ops_tech_account_role.permission_grant('admin.user')
+  ops_tech_account_role.permission_grant("admin.group")
+  ops_tech_account_role.permission_grant("admin.role")
   ops_tech_account_role.permission_grant('ticket.agent')
   ops_tech_account_role.permission_grant('user_preferences.access_token')
   ops_tech_account_role.groups << Group.find_by(name: 'Incoming')
@@ -296,7 +298,7 @@ namespace :ops do
       create_ops_user_roles
       ops_tech_role = create_ops_tech_account_role
 
-      setup_technical_user([ ops_tech_role.id, Role.find_by(name: "Správca podnetov pre OPS").id ]) unless User.count > 3
+      setup_technical_user([ ops_tech_role.id, Role.find_by(name: "Správca podnetov pre OPS").id, Role.find_by(name: "Admin").id ]) unless User.count > 3
 
       update_agent_role_permissions
 
