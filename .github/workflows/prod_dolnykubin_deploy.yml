@@ -1,0 +1,14 @@
+name: PROD Dolný Kubín Deploy
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod_dolnykubin
+      environment_url: https://dolnykubin.odkazprestarostu.sk
+
+    secrets: inherit

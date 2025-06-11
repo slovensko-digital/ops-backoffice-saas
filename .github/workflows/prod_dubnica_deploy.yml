@@ -1,0 +1,14 @@
+name: PROD Dubnica nad Váhom Deploy
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod_dubnica
+      environment_url: https://dubnica.odkazprestarostu.sk
+
+    secrets: inherit

@@ -1,0 +1,54 @@
+service: "ops-backoffice-dubnica"
+
+image: "sd/ops-backoffice-dubnica"
+
+servers:
+  web:
+    hosts:
+      - 88.99.99.215
+
+  worker:
+    hosts:
+      - 88.99.99.215
+
+proxy:
+  host: dubnica.odkazprestarostu.sk
+
+env: &dubnica_env
+  clear:
+    SERVICE_NAME: ops-backoffice-dubnica
+    FQDN: dubnica.odkazprestarostu.sk
+    REDIS_URL: "redis://ops-backoffice-dubnica-redis:6379/1"
+    ELASTICSEARCH_NAMESPACE: ops-backoffice-zammad-dubnica
+    ZAMMAD_ELASTICSEARCH_USER: ops-backoffice-zammad-dubnica
+    OPS_CONNECTOR_URL: https://novy.odkazprestarostu.sk
+    OPS_PORTAL_URL: https://novy.odkazprestarostu.sk
+    ORGANIZATION: "Dubnica nad Váhom"
+    PRODUCT_NAME: Backoffice
+    WEBHOOK_TENANT_ID: 6
+    OPS_RESPONSIBLE_SUBJECT: "Dubnica nad Váhom"
+    OPS_RESPONSIBLE_SUBJECT_ID: 174
+
+    NOTIFICATION_SENDER: "Dubnica nad Váhom | Backoffice"
+    NOTIFICATION_SMTP_USER: notifikacie-dubnica@odkazprestarostu.sk
+
+    POSTGRESQL_USER: ops_backoffice_dubnica
+    POSTGRESQL_DB: ops_backoffice_dubnica_production
+    POSTGRESQL_HOST: host.docker.internal
+    POSTGRESQL_OPTIONS: "?pool=50"
+
+accessories:
+  railsserver: &accessory-hack
+    image: "sd/ops-backoffice-dubnica:<%= `git rev-parse HEAD`.strip %>"
+    volumes:
+      - "ops-backoffice-dubnica-storage:/opt/zammad/storage"
+    env:
+      <<: *dubnica_env
+    cmd: "zammad-railsserver"
+
+  websocket:
+    <<: *accessory-hack
+    cmd: "zammad-websocket"
+
+volumes:
+  - "ops-backoffice-dubnica-storage:/opt/zammad/storage"

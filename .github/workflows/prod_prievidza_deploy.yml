@@ -1,0 +1,14 @@
+name: PROD Prievidza Deploy
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod_prievidza
+      environment_url: https://prievidza.odkazprestarostu.sk
+
+    secrets: inherit

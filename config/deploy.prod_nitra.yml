@@ -1,0 +1,54 @@
+service: "ops-backoffice-nitra"
+
+image: "sd/ops-backoffice-nitra"
+
+servers:
+  web:
+    hosts:
+      - 88.99.99.215
+
+  worker:
+    hosts:
+      - 88.99.99.215
+
+proxy:
+  host: nitra.odkazprestarostu.sk
+
+env: &nitra_env
+  clear:
+    SERVICE_NAME: ops-backoffice-nitra
+    FQDN: nitra.odkazprestarostu.sk
+    REDIS_URL: "redis://ops-backoffice-nitra-redis:6379/1"
+    ELASTICSEARCH_NAMESPACE: ops-backoffice-zammad-nitra
+    ZAMMAD_ELASTICSEARCH_USER: ops-backoffice-zammad-nitra
+    OPS_CONNECTOR_URL: https://novy.odkazprestarostu.sk
+    OPS_PORTAL_URL: https://novy.odkazprestarostu.sk
+    ORGANIZATION: Nitra
+    PRODUCT_NAME: Backoffice
+    WEBHOOK_TENANT_ID: 7
+    OPS_RESPONSIBLE_SUBJECT: Nitra
+    OPS_RESPONSIBLE_SUBJECT_ID: 27
+
+    NOTIFICATION_SENDER: "Nitra | Backoffice"
+    NOTIFICATION_SMTP_USER: notifikacie-nitra@odkazprestarostu.sk
+
+    POSTGRESQL_USER: ops_backoffice_nitra
+    POSTGRESQL_DB: ops_backoffice_nitra_production
+    POSTGRESQL_HOST: host.docker.internal
+    POSTGRESQL_OPTIONS: "?pool=50"
+
+accessories:
+  railsserver: &accessory-hack
+    image: "sd/ops-backoffice-nitra:<%= `git rev-parse HEAD`.strip %>"
+    volumes:
+      - "ops-backoffice-nitra-storage:/opt/zammad/storage"
+    env:
+      <<: *nitra_env
+    cmd: "zammad-railsserver"
+
+  websocket:
+    <<: *accessory-hack
+    cmd: "zammad-websocket"
+
+volumes:
+  - "ops-backoffice-nitra-storage:/opt/zammad/storage"
