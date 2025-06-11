@@ -1,0 +1,38 @@
+name: PROD All Deployments
+
+on:
+  workflow_dispatch:
+
+jobs:
+  prod_pezinok:
+    uses: ./.github/workflows/prod_pezinok_deploy.yml
+
+  prod_prievidza:
+    uses: ./.github/workflows/prod_prievidza_deploy.yml
+
+  prod_dolnykubin:
+    uses: ./.github/workflows/prod_dolnykubin_deploy.yml
+
+  prod_dubnica:
+    uses: ./.github/workflows/prod_dubnica_deploy.yml
+
+  prod_nitra:
+    uses: ./.github/workflows/prod_nitra_deploy.yml
+
+  prod_trnava:
+    uses: ./.github/workflows/prod_trnava_deploy.yml
+
+  prod_malacky:
+    uses: ./.github/workflows/prod_malacky_deploy.yml
+
+  prod_modra:
+    uses: ./.github/workflows/prod_modra_deploy.yml
+
+  prod_sabinov:
+    uses: ./.github/workflows/prod_sabinov_deploy.yml
+
+  prod_banska_bystrica:
+    uses: ./.github/workflows/prod_banska_bystrica_deploy.yml
+
+  prod_hlohovec:
+    uses: ./.github/workflows/prod_hlohovec_deploy.yml

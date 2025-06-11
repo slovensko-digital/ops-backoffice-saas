@@ -1,0 +1,54 @@
+service: "ops-backoffice-pezinok"
+
+image: "sd/ops-backoffice-pezinok"
+
+servers:
+  web:
+    hosts:
+      - 88.99.99.215
+
+  worker:
+    hosts:
+      - 88.99.99.215
+
+proxy:
+  host: pezinok.odkazprestarostu.sk
+
+env: &pezinok_env
+  clear:
+    SERVICE_NAME: ops-backoffice-pezinok
+    FQDN: pezinok.odkazprestarostu.sk
+    REDIS_URL: "redis://ops-backoffice-pezinok-redis:6379/1"
+    ELASTICSEARCH_NAMESPACE: ops-backoffice-zammad-pezinok
+    ZAMMAD_ELASTICSEARCH_USER: ops-backoffice-zammad-pezinok
+    OPS_CONNECTOR_URL: https://novy.odkazprestarostu.sk
+    OPS_PORTAL_URL: https://novy.odkazprestarostu.sk
+    ORGANIZATION: Pezinok
+    PRODUCT_NAME: Backoffice
+    WEBHOOK_TENANT_ID: 8
+    OPS_RESPONSIBLE_SUBJECT: Pezinok
+    OPS_RESPONSIBLE_SUBJECT_ID: 149
+
+    NOTIFICATION_SENDER: "Pezinok | Backoffice"
+    NOTIFICATION_SMTP_USER: notifikacie-pezinok@odkazprestarostu.sk
+
+    POSTGRESQL_USER: ops_backoffice_pezinok
+    POSTGRESQL_DB: ops_backoffice_pezinok_production
+    POSTGRESQL_HOST: host.docker.internal
+    POSTGRESQL_OPTIONS: "?pool=50"
+
+accessories:
+  railsserver: &accessory-hack
+    image: "sd/ops-backoffice-pezinok:<%= `git rev-parse HEAD`.strip %>"
+    volumes:
+      - "ops-backoffice-pezinok-storage:/opt/zammad/storage"
+    env:
+      <<: *pezinok_env
+    cmd: "zammad-railsserver"
+
+  websocket:
+    <<: *accessory-hack
+    cmd: "zammad-websocket"
+
+volumes:
+  - "ops-backoffice-pezinok-storage:/opt/zammad/storage"

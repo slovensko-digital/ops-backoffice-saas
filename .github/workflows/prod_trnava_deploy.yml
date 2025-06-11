@@ -1,0 +1,14 @@
+name: PROD Trnava Deploy
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod_trnava
+      environment_url: https://trnava.odkazprestarostu.sk
+
+    secrets: inherit
