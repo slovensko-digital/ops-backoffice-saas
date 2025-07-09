@@ -5,7 +5,7 @@ image: "sd/ops-backoffice-sabinov"
 servers:
   web:
     hosts:
-      - sabinov.odkazprestarostu.sk
+      - 88.99.99.215
     proxy:
       host: sabinov.odkazprestarostu.sk
     options:
@@ -13,7 +13,7 @@ servers:
 
   websocket:
     hosts:
-      - sabinov.odkazprestarostu.sk
+      - 88.99.99.215
 
   worker:
     hosts:

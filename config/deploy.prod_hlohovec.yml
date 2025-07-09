@@ -5,7 +5,7 @@ image: "sd/ops-backoffice-hlohovec"
 servers:
   web:
     hosts:
-      - hlohovec.odkazprestarostu.sk
+      - 88.99.99.215
     proxy:
       host: hlohovec.odkazprestarostu.sk
     options:
@@ -13,7 +13,7 @@ servers:
 
   websocket:
     hosts:
-      - hlohovec.odkazprestarostu.sk
+      - 88.99.99.215
 
   worker:
     hosts:

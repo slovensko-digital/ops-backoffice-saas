@@ -5,7 +5,7 @@ image: "sd/ops-backoffice-trnava"
 servers:
   web:
     hosts:
-      - trnava.odkazprestarostu.sk
+      - 88.99.99.215
     proxy:
       host: trnava.odkazprestarostu.sk
     options:
@@ -13,7 +13,7 @@ servers:
 
   websocket:
     hosts:
-      - trnava.odkazprestarostu.sk
+      - 88.99.99.215
 
   worker:
     hosts:
