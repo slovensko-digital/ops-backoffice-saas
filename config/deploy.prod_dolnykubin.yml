@@ -5,7 +5,15 @@ image: "sd/ops-backoffice-dolnykubin"
 servers:
   web:
     hosts:
-      - 88.99.99.215
+      - dolnykubin.odkazprestarostu.sk
+    proxy:
+      host: dolnykubin.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - dolnykubin.odkazprestarostu.sk
 
   worker:
     hosts:
@@ -14,7 +22,7 @@ servers:
 proxy:
   host: dolnykubin.odkazprestarostu.sk
 
-env: &dolnykubin_env
+env:
   clear:
     SERVICE_NAME: ops-backoffice-dolnykubin
     FQDN: dolnykubin.odkazprestarostu.sk
@@ -36,19 +44,6 @@ env: &dolnykubin_env
     POSTGRESQL_DB: ops_backoffice_dolnykubin_production
     POSTGRESQL_HOST: host.docker.internal
     POSTGRESQL_OPTIONS: "?pool=50"
-
-accessories:
-  railsserver: &accessory-hack
-    image: "sd/ops-backoffice-dolnykubin:<%= `git rev-parse HEAD`.strip %>"
-    volumes:
-      - "ops-backoffice-dolnykubin-storage:/opt/zammad/storage"
-    env:
-      <<: *dolnykubin_env
-    cmd: "zammad-railsserver"
-
-  websocket:
-    <<: *accessory-hack
-    cmd: "zammad-websocket"
 
 volumes:
   - "ops-backoffice-dolnykubin-storage:/opt/zammad/storage"

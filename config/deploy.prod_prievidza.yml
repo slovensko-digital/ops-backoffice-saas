@@ -5,7 +5,15 @@ image: "sd/ops-backoffice-prievidza"
 servers:
   web:
     hosts:
-      - 88.99.99.215
+      - prievidza.odkazprestarostu.sk
+    proxy:
+      host: prievidza.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - prievidza.odkazprestarostu.sk
 
   worker:
     hosts:
@@ -14,7 +22,7 @@ servers:
 proxy:
   host: prievidza.odkazprestarostu.sk
 
-env: &prievidza_env
+env:
   clear:
     SERVICE_NAME: ops-backoffice-prievidza
     FQDN: prievidza.odkazprestarostu.sk
@@ -36,19 +44,6 @@ env: &prievidza_env
     POSTGRESQL_DB: ops_backoffice_prievidza_production
     POSTGRESQL_HOST: host.docker.internal
     POSTGRESQL_OPTIONS: "?pool=50"
-
-accessories:
-  railsserver: &accessory-hack
-    image: "sd/ops-backoffice-prievidza:<%= `git rev-parse HEAD`.strip %>"
-    volumes:
-      - "ops-backoffice-prievidza-storage:/opt/zammad/storage"
-    env:
-      <<: *prievidza_env
-    cmd: "zammad-railsserver"
-
-  websocket:
-    <<: *accessory-hack
-    cmd: "zammad-websocket"
 
 volumes:
   - "ops-backoffice-prievidza-storage:/opt/zammad/storage"

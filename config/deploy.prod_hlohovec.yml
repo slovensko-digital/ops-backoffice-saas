@@ -5,7 +5,15 @@ image: "sd/ops-backoffice-hlohovec"
 servers:
   web:
     hosts:
-      - 88.99.99.215
+      - hlohovec.odkazprestarostu.sk
+    proxy:
+      host: hlohovec.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - hlohovec.odkazprestarostu.sk
 
   worker:
     hosts:
@@ -14,7 +22,7 @@ servers:
 proxy:
   host: hlohovec.odkazprestarostu.sk
 
-env: &hlohovec_env
+env:
   clear:
     SERVICE_NAME: ops-backoffice-hlohovec
     FQDN: hlohovec.odkazprestarostu.sk
@@ -36,19 +44,6 @@ env: &hlohovec_env
     POSTGRESQL_DB: ops_backoffice_hlohovec_production
     POSTGRESQL_HOST: host.docker.internal
     POSTGRESQL_OPTIONS: "?pool=50"
-
-accessories:
-  railsserver: &accessory-hack
-    image: "sd/ops-backoffice-hlohovec:<%= `git rev-parse HEAD`.strip %>"
-    volumes:
-      - "ops-backoffice-hlohovec-storage:/opt/zammad/storage"
-    env:
-      <<: *hlohovec_env
-    cmd: "zammad-railsserver"
-
-  websocket:
-    <<: *accessory-hack
-    cmd: "zammad-websocket"
 
 volumes:
   - "ops-backoffice-hlohovec-storage:/opt/zammad/storage"

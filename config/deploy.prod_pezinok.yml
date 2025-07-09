@@ -5,7 +5,15 @@ image: "sd/ops-backoffice-pezinok"
 servers:
   web:
     hosts:
-      - 88.99.99.215
+      - pezinok.odkazprestarostu.sk
+    proxy:
+      host: pezinok.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - pezinok.odkazprestarostu.sk
 
   worker:
     hosts:
@@ -14,7 +22,7 @@ servers:
 proxy:
   host: pezinok.odkazprestarostu.sk
 
-env: &pezinok_env
+env:
   clear:
     SERVICE_NAME: ops-backoffice-pezinok
     FQDN: pezinok.odkazprestarostu.sk
@@ -36,19 +44,6 @@ env: &pezinok_env
     POSTGRESQL_DB: ops_backoffice_pezinok_production
     POSTGRESQL_HOST: host.docker.internal
     POSTGRESQL_OPTIONS: "?pool=50"
-
-accessories:
-  railsserver: &accessory-hack
-    image: "sd/ops-backoffice-pezinok:<%= `git rev-parse HEAD`.strip %>"
-    volumes:
-      - "ops-backoffice-pezinok-storage:/opt/zammad/storage"
-    env:
-      <<: *pezinok_env
-    cmd: "zammad-railsserver"
-
-  websocket:
-    <<: *accessory-hack
-    cmd: "zammad-websocket"
 
 volumes:
   - "ops-backoffice-pezinok-storage:/opt/zammad/storage"

@@ -5,7 +5,15 @@ image: "sd/ops-backoffice-trnava"
 servers:
   web:
     hosts:
-      - 88.99.99.215
+      - trnava.odkazprestarostu.sk
+    proxy:
+      host: trnava.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - trnava.odkazprestarostu.sk
 
   worker:
     hosts:
@@ -14,7 +22,7 @@ servers:
 proxy:
   host: trnava.odkazprestarostu.sk
 
-env: &trnava_env
+env:
   clear:
     SERVICE_NAME: ops-backoffice-trnava
     FQDN: trnava.odkazprestarostu.sk
@@ -36,19 +44,6 @@ env: &trnava_env
     POSTGRESQL_DB: ops_backoffice_trnava_production
     POSTGRESQL_HOST: host.docker.internal
     POSTGRESQL_OPTIONS: "?pool=50"
-
-accessories:
-  railsserver: &accessory-hack
-    image: "sd/ops-backoffice-trnava:<%= `git rev-parse HEAD`.strip %>"
-    volumes:
-      - "ops-backoffice-trnava-storage:/opt/zammad/storage"
-    env:
-      <<: *trnava_env
-    cmd: "zammad-railsserver"
-
-  websocket:
-    <<: *accessory-hack
-    cmd: "zammad-websocket"
 
 volumes:
   - "ops-backoffice-trnava-storage:/opt/zammad/storage"

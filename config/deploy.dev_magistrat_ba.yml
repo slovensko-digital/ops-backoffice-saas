@@ -6,6 +6,14 @@ servers:
   web:
     hosts:
       - magistrat-ba.ops.dev.slovensko.digital
+    proxy:
+      host: magistrat-ba.ops.dev.slovensko.digital
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - magistrat-ba.ops.dev.slovensko.digital
 
   worker:
     hosts:
@@ -14,7 +22,7 @@ servers:
 proxy:
   host: magistrat-ba.ops.dev.slovensko.digital
 
-env: &magistrat-ba_env
+env:
   clear:
     SERVICE_NAME: ops-backoffice-magistrat-ba
     FQDN: magistrat-ba.ops.dev.slovensko.digital
@@ -36,19 +44,6 @@ env: &magistrat-ba_env
     POSTGRESQL_DB: ops_backoffice_magistrat_ba_staging
     POSTGRESQL_HOST: host.docker.internal
     POSTGRESQL_OPTIONS: "?pool=50"
-
-accessories:
-  railsserver: &accessory-hack
-    image: "sd/ops-backoffice-magistrat-ba:<%= `git rev-parse HEAD`.strip %>"
-    volumes:
-      - "ops-backoffice-magistrat-ba-storage:/opt/zammad/storage"
-    env:
-      <<: *magistrat-ba_env
-    cmd: "zammad-railsserver"
-
-  websocket:
-    <<: *accessory-hack
-    cmd: "zammad-websocket"
 
 volumes:
   - "ops-backoffice-magistrat-ba-storage:/opt/zammad/storage"

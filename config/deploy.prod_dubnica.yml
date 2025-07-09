@@ -5,7 +5,15 @@ image: "sd/ops-backoffice-dubnica"
 servers:
   web:
     hosts:
-      - 88.99.99.215
+      - dubnica.odkazprestarostu.sk
+    proxy:
+      host: dubnica.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - dubnica.odkazprestarostu.sk
 
   worker:
     hosts:
@@ -14,7 +22,7 @@ servers:
 proxy:
   host: dubnica.odkazprestarostu.sk
 
-env: &dubnica_env
+env:
   clear:
     SERVICE_NAME: ops-backoffice-dubnica
     FQDN: dubnica.odkazprestarostu.sk
@@ -36,19 +44,6 @@ env: &dubnica_env
     POSTGRESQL_DB: ops_backoffice_dubnica_production
     POSTGRESQL_HOST: host.docker.internal
     POSTGRESQL_OPTIONS: "?pool=50"
-
-accessories:
-  railsserver: &accessory-hack
-    image: "sd/ops-backoffice-dubnica:<%= `git rev-parse HEAD`.strip %>"
-    volumes:
-      - "ops-backoffice-dubnica-storage:/opt/zammad/storage"
-    env:
-      <<: *dubnica_env
-    cmd: "zammad-railsserver"
-
-  websocket:
-    <<: *accessory-hack
-    cmd: "zammad-websocket"
 
 volumes:
   - "ops-backoffice-dubnica-storage:/opt/zammad/storage"

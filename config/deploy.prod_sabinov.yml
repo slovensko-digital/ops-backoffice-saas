@@ -5,7 +5,15 @@ image: "sd/ops-backoffice-sabinov"
 servers:
   web:
     hosts:
-      - 88.99.99.215
+      - sabinov.odkazprestarostu.sk
+    proxy:
+      host: sabinov.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - sabinov.odkazprestarostu.sk
 
   worker:
     hosts:
@@ -14,7 +22,7 @@ servers:
 proxy:
   host: sabinov.odkazprestarostu.sk
 
-env: &sabinov_env
+env:
   clear:
     SERVICE_NAME: ops-backoffice-sabinov
     FQDN: sabinov.odkazprestarostu.sk
@@ -36,19 +44,6 @@ env: &sabinov_env
     POSTGRESQL_DB: ops_backoffice_sabinov_production
     POSTGRESQL_HOST: host.docker.internal
     POSTGRESQL_OPTIONS: "?pool=50"
-
-accessories:
-  railsserver: &accessory-hack
-    image: "sd/ops-backoffice-sabinov:<%= `git rev-parse HEAD`.strip %>"
-    volumes:
-      - "ops-backoffice-sabinov-storage:/opt/zammad/storage"
-    env:
-      <<: *sabinov_env
-    cmd: "zammad-railsserver"
-
-  websocket:
-    <<: *accessory-hack
-    cmd: "zammad-websocket"
 
 volumes:
   - "ops-backoffice-sabinov-storage:/opt/zammad/storage"
