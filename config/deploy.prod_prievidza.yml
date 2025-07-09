@@ -5,7 +5,7 @@ image: "sd/ops-backoffice-prievidza"
 servers:
   web:
     hosts:
-      - prievidza.odkazprestarostu.sk
+      - 88.99.99.215
     proxy:
       host: prievidza.odkazprestarostu.sk
     options:
@@ -13,7 +13,7 @@ servers:
 
   websocket:
     hosts:
-      - prievidza.odkazprestarostu.sk
+      - 88.99.99.215
 
   worker:
     hosts:

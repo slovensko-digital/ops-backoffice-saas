@@ -5,7 +5,7 @@ image: "sd/ops-backoffice-banska-bystrica"
 servers:
   web:
     hosts:
-      - banska-bystrica.odkazprestarostu.sk
+      - 88.99.99.215
     proxy:
       host: banska-bystrica.odkazprestarostu.sk
     options:
@@ -13,7 +13,7 @@ servers:
 
   websocket:
     hosts:
-      - banska-bystrica.odkazprestarostu.sk
+      - 88.99.99.215
 
   worker:
     hosts:
