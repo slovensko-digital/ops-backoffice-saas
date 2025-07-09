@@ -5,7 +5,15 @@ image: "sd/ops-backoffice-nitra"
 servers:
   web:
     hosts:
-      - 88.99.99.215
+      - nitra.odkazprestarostu.sk
+    proxy:
+      host: nitra.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - nitra.odkazprestarostu.sk
 
   worker:
     hosts:
@@ -14,7 +22,7 @@ servers:
 proxy:
   host: nitra.odkazprestarostu.sk
 
-env: &nitra_env
+env:
   clear:
     SERVICE_NAME: ops-backoffice-nitra
     FQDN: nitra.odkazprestarostu.sk
@@ -36,19 +44,6 @@ env: &nitra_env
     POSTGRESQL_DB: ops_backoffice_nitra_production
     POSTGRESQL_HOST: host.docker.internal
     POSTGRESQL_OPTIONS: "?pool=50"
-
-accessories:
-  railsserver: &accessory-hack
-    image: "sd/ops-backoffice-nitra:<%= `git rev-parse HEAD`.strip %>"
-    volumes:
-      - "ops-backoffice-nitra-storage:/opt/zammad/storage"
-    env:
-      <<: *nitra_env
-    cmd: "zammad-railsserver"
-
-  websocket:
-    <<: *accessory-hack
-    cmd: "zammad-websocket"
 
 volumes:
   - "ops-backoffice-nitra-storage:/opt/zammad/storage"

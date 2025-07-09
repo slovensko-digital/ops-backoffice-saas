@@ -164,8 +164,3 @@ Note: *workflow_dispatch GitHub Action is only available if it is located in the
 ### Reindex Elastic
 
 From local computer use `kamal reindex_elastic -d dev_staremesto_ba` to set up the elastisearch indexes for the first time.
-
-
-## Zammad NGINX reverse proxy hack
-
-As long as kamal-proxy's `path-prefix` setting is not presnt in kamal, zammad's `railsserver` and `websocket` must be deployed as kamal accessory. Thus, nginx reverse proxy is dpeloyed as the main `web` container. We must use custom and dynamically edited `nginx.conf` to specify the upstreams. The upstreams need to be set differently for each `destination` as we are deploying multiple `destinations` on the same server. Hostnames in docker network would collide otherwise.

@@ -54,6 +54,5 @@ jobs:
           MONITORING_TOKEN: ${{ vars.MONITORING_TOKEN }}
 
         run: |
-          kamal build push -d ${{ inputs.environment }}
           kamal accessory reboot -d ${{ inputs.environment }} all
-          kamal deploy -P -d ${{ inputs.environment }}
+          kamal deploy -d ${{ inputs.environment }}

@@ -1,25 +1,33 @@
 servers:
   web:
-    cmd: "/opt/zammad_init_and_nginx.sh"
-    # TODO might ditch the whole nginx when https://github.com/basecamp/kamal-proxy/issues/48 is implemented
+    cmd: "/opt/zammad_init_and_railsserver.sh"
     options:
-      "add-host": host.docker.internal:host-gateway
+      add-host: host.docker.internal:host-gateway
+    proxy:
+      ssl: true
+      app_port: 3000
+      healthcheck:
+        path: /
+
+  websocket:
+    cmd: "zammad-websocket"
+    options:
+      add-host: host.docker.internal:host-gateway
+    proxy:
+      path_prefix: /ws
+      strip_path_prefix: true
+      app_port: 6042
+      healthcheck:
+        path: /healthcheck
 
   worker:
     cmd: "zammad-scheduler"
     options:
-      "add-host": host.docker.internal:host-gateway
+      add-host: host.docker.internal:host-gateway
 
 deploy_timeout: 90
 
-proxy:
-  ssl: true
-  app_port: 8080
-  healthcheck:
-    path: /
-    interval: 10
-
-env: &env
+env:
   clear:
     BACKGROUND_SERVICES_LOG_TO_STDOUT: 1
     RAILS_LOG_TO_STDOUT: true
@@ -63,7 +71,7 @@ aliases:
   logs: app logs -f
   reindex_elastic: app exec -r worker -p -i --reuse "/docker-entrypoint.sh bin/rake zammad:searchindex:rebuild[8]"
 
-registry: &registry
+registry:
   server: registry.dev.slovensko.digital
   username:
     - KAMAL_REGISTRY_USERNAME
@@ -71,22 +79,6 @@ registry: &registry
     - KAMAL_REGISTRY_PASSWORD
 
 accessories:
-  railsserver: &accessory-hack
-    registry:
-      <<: *registry
-    roles:
-      - web
-      - worker
-    options:
-      "add-host": host.docker.internal:host-gateway
-    env:
-      <<: *env
-    cmd: "zammad-railsserver"
-
-  websocket:
-    <<: *accessory-hack
-    cmd: "zammad-websocket"
-
   redis:
     image: redis:7.0
     roles:
