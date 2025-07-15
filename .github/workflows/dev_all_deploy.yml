@@ -1,0 +1,17 @@
+name: DEV All Deployments
+
+on:
+  workflow_dispatch:
+
+jobs:
+  dev_magistrat_ba:
+    uses: ./.github/workflows/dev_magistrat_ba_deploy.yml
+
+  dev_stupava:
+    uses: ./.github/workflows/dev_stupava_deploy.yml
+
+  dev_malacky:
+    uses: ./.github/workflows/dev_malacky_deploy.yml
+
+  dev_staremesto_ba:
+    uses: ./.github/workflows/dev_staremesto_ba_deploy.yml
