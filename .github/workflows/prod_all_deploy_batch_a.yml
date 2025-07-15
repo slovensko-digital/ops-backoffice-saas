@@ -1,4 +1,4 @@
-name: PROD All Deployments
+name: PROD Batch A Deployments
 
 on:
   workflow_dispatch:
@@ -21,18 +21,3 @@ jobs:
 
   prod_trnava:
     uses: ./.github/workflows/prod_trnava_deploy.yml
-
-  prod_malacky:
-    uses: ./.github/workflows/prod_malacky_deploy.yml
-
-  prod_modra:
-    uses: ./.github/workflows/prod_modra_deploy.yml
-
-  prod_sabinov:
-    uses: ./.github/workflows/prod_sabinov_deploy.yml
-
-  prod_banska_bystrica:
-    uses: ./.github/workflows/prod_banska_bystrica_deploy.yml
-
-  prod_hlohovec:
-    uses: ./.github/workflows/prod_hlohovec_deploy.yml
