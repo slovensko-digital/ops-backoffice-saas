@@ -1,0 +1,14 @@
+name: DEV Nove Mesto BA Deploy
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: dev_novemesto_ba
+      environment_url: https://novemesto-ba.ops.dev.slovensko.digital
+
+    secrets: inherit
