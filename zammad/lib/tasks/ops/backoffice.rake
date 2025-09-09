@@ -446,6 +446,7 @@ namespace :ops do
             "unresolved" => "Neriešený",
             "closed" => "Uzavretý",
             "referred" => "Odstúpený",
+            "duplicate" => "Duplicitný"
           },
           default: 'waiting',
           nulloption: true,
