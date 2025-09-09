@@ -446,6 +446,7 @@ namespace :ops do
             "unresolved" => "Neriešený",
             "closed" => "Uzavretý",
             "referred" => "Odstúpený",
+            "duplicate" => "Duplicitný"
           },
           default: 'waiting',
           nulloption: true,
@@ -725,7 +726,7 @@ namespace :ops do
         flow.preferences = { "screen" => [ "edit" ] }
         flow.condition_saved = {
           "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
-          "ticket.ops_state" => { "operator" => "is", "value" => [ "resolved", "unresolved", "closed" ] }
+          "ticket.ops_state" => { "operator" => "is", "value" => [ "resolved", "unresolved", "closed", "duplicate" ] }
         }
         flow.condition_selected = {}
         flow.perform = {
