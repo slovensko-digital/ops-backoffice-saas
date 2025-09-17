@@ -269,6 +269,9 @@ namespace :ops do
         })
       end
 
+      Rails.logger.info "Set ticket_number adapter model..."
+      Setting.set('ticket_number', 'Ticket::Number::OpsNumber')
+
       Rails.logger.info "Create incoming group..."
       incoming_group = Group.find_or_initialize_by(name: 'Incoming').tap do |group|
         group.note = __('Incoming tickets group.')
@@ -929,7 +932,6 @@ namespace :ops do
             { "name" => "ticket.origin", "operator" => "is", "value" => [ "ops" ] },
             { "name" => "ticket.ops_issue_type", "operator" => "is", "value" => [ "issue", "question" ] },
             { "name" => "article.type_id", "operator" => "is", "value" => [Ticket::Article::Type.find_by(name: "note").id] },
-            { "name" => "article.internal", "operator" => "is", "value" => ["false"] },
             { "name" => "article.action", "operator" => "is", "value" => "create" },
             { "name" => "article.created_by_id", "operator" => "is not", "value" => [ tech_user.id ] }
           ]
