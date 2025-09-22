@@ -705,12 +705,12 @@ namespace :ops do
         flow.preferences = { "screen" => [ "edit" ] }
         flow.condition_saved = {
           "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
-          "ticket.ops_state" => { "operator" => "is not", "value" => [ "resolved", "unresolved", "closed" ] }
+          "ticket.ops_state" => { "operator" => "is not", "value" => [ "resolved", "closed" ] }
         }
         flow.condition_selected = {}
         flow.perform = { "ticket.ops_state" => {
           "operator" => [ "set_fixed_to", "set_mandatory" ],
-          "set_fixed_to" => [ "sent_to_responsible", "in_progress", "marked_as_resolved", "referred" ],
+          "set_fixed_to" => [ "sent_to_responsible", "in_progress", "marked_as_resolved", "referred", "unresolved" ],
           "set_mandatory" => "true"
         } }
         flow.active = true
@@ -726,7 +726,7 @@ namespace :ops do
         flow.preferences = { "screen" => [ "edit" ] }
         flow.condition_saved = {
           "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] },
-          "ticket.ops_state" => { "operator" => "is", "value" => [ "resolved", "unresolved", "closed", "duplicate" ] }
+          "ticket.ops_state" => { "operator" => "is", "value" => [ "resolved", "closed", "duplicate" ] }
         }
         flow.condition_selected = {}
         flow.perform = {
