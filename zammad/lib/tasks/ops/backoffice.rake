@@ -757,7 +757,7 @@ namespace :ops do
         flow.active = true
         flow.stop_after_match = false
         flow.changeable = true
-        flow.priority = 120
+        flow.priority = 130
         flow.updated_by_id = 1
         flow.created_by_id = 1
       end.save!
