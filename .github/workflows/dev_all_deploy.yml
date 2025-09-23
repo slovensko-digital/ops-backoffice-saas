@@ -21,7 +21,7 @@ jobs:
     secrets: inherit
 
   dev_staremesto_ba:
-    needs: dev_stupava
+    needs: dev_malacky
     if: ${{ always() }}
     uses: ./.github/workflows/dev_staremesto_ba_deploy.yml
     secrets: inherit

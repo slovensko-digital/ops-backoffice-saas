@@ -9,21 +9,31 @@ jobs:
     secrets: inherit
 
   prod_prievidza:
+    needs: prod_pezinok
+    if: ${{ always() }}
     uses: ./.github/workflows/prod_prievidza_deploy.yml
     secrets: inherit
 
   prod_dolnykubin:
+    needs: prod_prievidza
+    if: ${{ always() }}
     uses: ./.github/workflows/prod_dolnykubin_deploy.yml
     secrets: inherit
 
   prod_dubnica:
+    needs: prod_dolnykubin
+    if: ${{ always() }}
     uses: ./.github/workflows/prod_dubnica_deploy.yml
     secrets: inherit
 
   prod_nitra:
+    needs: prod_dubnica
+    if: ${{ always() }}
     uses: ./.github/workflows/prod_nitra_deploy.yml
     secrets: inherit
 
   prod_trnava:
+    needs: prod_nitra
+    if: ${{ always() }}
     uses: ./.github/workflows/prod_trnava_deploy.yml
     secrets: inherit

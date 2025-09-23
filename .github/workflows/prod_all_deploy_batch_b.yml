@@ -9,17 +9,25 @@ jobs:
     secrets: inherit
 
   prod_modra:
+    needs: prod_malacky
+    if: ${{ always() }}
     uses: ./.github/workflows/prod_modra_deploy.yml
     secrets: inherit
 
   prod_sabinov:
+    needs: prod_modra
+    if: ${{ always() }}
     uses: ./.github/workflows/prod_sabinov_deploy.yml
     secrets: inherit
 
   prod_banska_bystrica:
+    needs: prod_sabinov
+    if: ${{ always() }}
     uses: ./.github/workflows/prod_banska_bystrica_deploy.yml
     secrets: inherit
 
   prod_hlohovec:
+    needs: prod_banska_bystrica
+    if: ${{ always() }}
     uses: ./.github/workflows/prod_hlohovec_deploy.yml
     secrets: inherit
