@@ -6,12 +6,16 @@ on:
 jobs:
   dev_magistrat_ba:
     uses: ./.github/workflows/dev_magistrat_ba_deploy.yml
+    secrets: inherit
 
   dev_stupava:
     uses: ./.github/workflows/dev_stupava_deploy.yml
+    secrets: inherit
 
   dev_malacky:
     uses: ./.github/workflows/dev_malacky_deploy.yml
+    secrets: inherit
 
   dev_staremesto_ba:
     uses: ./.github/workflows/dev_staremesto_ba_deploy.yml
+    secrets: inherit

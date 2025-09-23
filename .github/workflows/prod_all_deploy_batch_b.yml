@@ -6,15 +6,20 @@ on:
 jobs:
   prod_malacky:
     uses: ./.github/workflows/prod_malacky_deploy.yml
+    secrets: inherit
 
   prod_modra:
     uses: ./.github/workflows/prod_modra_deploy.yml
+    secrets: inherit
 
   prod_sabinov:
     uses: ./.github/workflows/prod_sabinov_deploy.yml
+    secrets: inherit
 
   prod_banska_bystrica:
     uses: ./.github/workflows/prod_banska_bystrica_deploy.yml
+    secrets: inherit
 
   prod_hlohovec:
     uses: ./.github/workflows/prod_hlohovec_deploy.yml
+    secrets: inherit

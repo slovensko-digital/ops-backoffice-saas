@@ -6,18 +6,24 @@ on:
 jobs:
   prod_pezinok:
     uses: ./.github/workflows/prod_pezinok_deploy.yml
+    secrets: inherit
 
   prod_prievidza:
     uses: ./.github/workflows/prod_prievidza_deploy.yml
+    secrets: inherit
 
   prod_dolnykubin:
     uses: ./.github/workflows/prod_dolnykubin_deploy.yml
+    secrets: inherit
 
   prod_dubnica:
     uses: ./.github/workflows/prod_dubnica_deploy.yml
+    secrets: inherit
 
   prod_nitra:
     uses: ./.github/workflows/prod_nitra_deploy.yml
+    secrets: inherit
 
   prod_trnava:
     uses: ./.github/workflows/prod_trnava_deploy.yml
+    secrets: inherit
