@@ -483,6 +483,15 @@ namespace :ops do
         tm.created_by_id = 1
       end.save!
 
+      TextModule.find_or_initialize_by(name: 'OPS - Vytvorenie podúloh').tap do |tm|
+        tm.keywords = "poduloha, podulohy, subtask"
+        tm.content = "[[podulohy]]"
+        tm.note = "Značka, ktorá spôsobí, že z komentára sa vytvoria podúlohy."
+        tm.active = true
+        tm.updated_by_id = 1
+        tm.created_by_id = 1
+      end.save!
+
       # make origin readonly for all tickets
       CoreWorkflow.find_or_initialize_by(name: 'ops - read-only origin').tap do |flow|
         flow.object = "Ticket"
