@@ -269,6 +269,9 @@ namespace :ops do
         })
       end
 
+      Rails.logger.info "Set ticket_number adapter model..."
+      Setting.set('ticket_number', 'Ticket::Number::OpsNumber')
+
       Rails.logger.info "Create incoming group..."
       incoming_group = Group.find_or_initialize_by(name: 'Incoming').tap do |group|
         group.note = __('Incoming tickets group.')
@@ -480,6 +483,15 @@ namespace :ops do
         tm.created_by_id = 1
       end.save!
 
+      TextModule.find_or_initialize_by(name: 'OPS - Vytvorenie podúloh').tap do |tm|
+        tm.keywords = "poduloha, podulohy, subtask"
+        tm.content = "[[podulohy]]"
+        tm.note = "Značka, ktorá spôsobí, že z komentára sa vytvoria podúlohy."
+        tm.active = true
+        tm.updated_by_id = 1
+        tm.created_by_id = 1
+      end.save!
+
       # make origin readonly for all tickets
       CoreWorkflow.find_or_initialize_by(name: 'ops - read-only origin').tap do |flow|
         flow.object = "Ticket"
@@ -501,7 +513,7 @@ namespace :ops do
       CoreWorkflow.find_or_initialize_by(name: 'ops - show ticket origin if set').tap do |flow|
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "edit" ] }
-        flow.condition_saved = { "ticket.origin" => { "operator" => "is set", "value" => [] } }
+        flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
         flow.condition_selected = {}
         flow.perform = {
           "ticket.origin" => { "operator" => "show", "show" => "true" },
@@ -618,6 +630,27 @@ namespace :ops do
         flow.stop_after_match = false
         flow.changeable = false
         flow.priority = 99
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
+
+      CoreWorkflow.find_or_initialize_by(name: 'ops - Hide attributes if source is subtask').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "subtask" ] }
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.address_municipality" => { "operator" => "hide", "hide" => "true" },
+          "ticket.address_municipality_district" => { "operator" => "hide", "hide" => "true" },
+          "ticket.address_street" => { "operator" => "hide", "hide" => "true" },
+          "ticket.address_house_number" => { "operator" => "hide", "hide" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 100
         flow.updated_by_id = 1
         flow.created_by_id = 1
       end.save!
@@ -929,7 +962,6 @@ namespace :ops do
             { "name" => "ticket.origin", "operator" => "is", "value" => [ "ops" ] },
             { "name" => "ticket.ops_issue_type", "operator" => "is", "value" => [ "issue", "question" ] },
             { "name" => "article.type_id", "operator" => "is", "value" => [Ticket::Article::Type.find_by(name: "note").id] },
-            { "name" => "article.internal", "operator" => "is", "value" => ["false"] },
             { "name" => "article.action", "operator" => "is", "value" => "create" },
             { "name" => "article.created_by_id", "operator" => "is not", "value" => [ tech_user.id ] }
           ]
