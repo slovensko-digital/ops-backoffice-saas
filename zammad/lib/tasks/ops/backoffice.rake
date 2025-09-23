@@ -296,6 +296,20 @@ namespace :ops do
       end
       import_group.save!
 
+      Rails.logger.info "Create Podúlohy group..."
+      subtask_group = Group.find_or_initialize_by(name: 'Podúlohy').tap do |group|
+        group.note = __('Podúlohy pre spracovanie podnetov.')
+        group.active = true
+        group.updated_by_id = 1
+        group.created_by_id = 1
+      end
+      subtask_group.save!
+
+      Rails.logger.info "Add Podúlohy group to Agent role..."
+      agent_role = Role.find_by(name: 'Agent')
+      agent_role.groups << subtask_group unless agent_role.groups.include?(subtask_group)
+      agent_role.save!
+
       setup_elastic if ENV['ELASTICSEARCH_ENABLED'] == 'true'
 
       create_ops_user_roles
