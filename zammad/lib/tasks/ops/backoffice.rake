@@ -1173,6 +1173,17 @@ namespace :ops do
       # deactivate predefined triggers
       Trigger.find_by(name: 'auto reply (on new tickets)')&.update!(active: false)
 
+      Scheduler.create_or_update(
+        name:          'OPS - add all groups to tech role.',
+        method:        'Ops::AssignTechRoleToAllGroupsJob.perform_now',
+        period:        15.minutes,
+        last_run:      Time.zone.now,
+        prio:          2,
+        active:        true,
+        updated_by_id: 1,
+        created_by_id: 1,
+      )
+
       # add sample tickets
       if ENV['CREATE_SAMPLE_TICKET'] == "true" && Ticket.count < 2
         Rails.logger.info "Creating sample tickets..."
