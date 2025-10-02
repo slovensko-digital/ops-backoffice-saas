@@ -1,3 +1,10 @@
+/* Ticket overview */
+
+/* Hide merge button */
+li button:has(.icon-merge) {
+    display: none;
+}
+
 /* Make file preview icon bigger */
 .group\/file-preview button {
     width: 160px !important;
