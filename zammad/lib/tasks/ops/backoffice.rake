@@ -1,14 +1,3 @@
-# name, title, position, shown_on_creation
-READ_ONLY_ATTRIBUTES = [
-  ['ops_category', 'Kategória v Odkaze pre starostu', 17, false],
-  ['ops_subcategory', 'Podkategória', 19, false],
-  ['ops_subtype', 'Typ Problému', 20, false],
-  ['address_municipality', 'Adresa (Mesto / Obec)', 53, true],
-  ['address_municipality_district', 'Adresa (Mestská časť)', 54, true],
-  ['address_street', 'Adresa (Ulica)', 56, true],
-  ['address_house_number', 'Adresa (Číslo domu)', 57, true],
-]
-
 class RequestMock
   attr_accessor :remote_ip, :env
   def initialize(remote_ip, env)
@@ -325,8 +314,15 @@ namespace :ops do
 
       Setting.set("monitoring_token", ENV['MONITORING_TOKEN']) if ENV['MONITORING_TOKEN'].present?
 
-      # add ops readonly attributes to ticket
-      READ_ONLY_ATTRIBUTES.each do |name, title, position, shown|
+      [
+        ['ops_category', 'Kategória v Odkaze pre starostu', 17, false],
+        ['ops_subcategory', 'Podkategória', 19, false],
+        ['ops_subtype', 'Typ Problému', 20, false],
+        ['address_municipality', 'Adresa (Mesto / Obec)', 53, false],
+        ['address_municipality_district', 'Adresa (Mestská časť)', 54, false],
+        ['address_street', 'Adresa (Ulica)', 56, false],
+        ['address_house_number', 'Adresa (Číslo domu)', 57, false],
+      ].each do |name, title, position, shown|
         ObjectManager::Attribute.add(
           object: 'Ticket',
           name: name.dup,
@@ -544,7 +540,7 @@ namespace :ops do
       CoreWorkflow.find_or_initialize_by(name: 'ops - read-only ticket attributes').tap do |flow|
         flow.object = "Ticket"
         flow.preferences = { "screen" => [ "create_middle", "edit" ] }
-        flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops" ] } }
+        flow.condition_saved = { "ticket.origin" => { "operator" => "is", "value" => [ "ops", "subtask" ] } }
         flow.condition_selected = {}
         flow.perform = {
           "ticket.ops_likes_count" => { "operator" => "set_readonly", "set_readonly" => "true" },
@@ -556,7 +552,14 @@ namespace :ops do
           "ticket.address_postcode" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.ops_portal_url" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.ops_issue_type" => { "operator" => "set_readonly", "set_readonly" => "true" },
-        }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "set_readonly", "set_readonly" => "true" }] }.to_h)
+          "ticket.ops_category" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_subcategory" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_subtype" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.address_municipality" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.address_municipality_district" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.address_street" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.address_house_number" => { "operator" => "set_readonly", "set_readonly" => "true" }
+        }
         flow.active = true
         flow.stop_after_match = false
         flow.changeable = false
@@ -610,11 +613,13 @@ namespace :ops do
           "ticket.ops_responsible_subject" => { "operator" => "show", "show" => "true" },
           "ticket.address_lat" => { "operator" => "show", "show" => "true" },
           "ticket.address_lon" => { "operator" => "show", "show" => "true" },
-          "ticket.address_postcode" => { "operator" => "show", "show" => "true" },
           "ticket.ops_portal_url" => { "operator" => "show", "show" => "true" },
           "ticket.ops_issue_type" => { "operator" => "show", "show" => "true" },
           "ticket.ops_investment" => { "operator" => "show", "show" => "true" },
-        }.merge(READ_ONLY_ATTRIBUTES.map { |name, _, _, _| [name, { "operator" => "show", "show" => "true" }] }.to_h)
+          "ticket.ops_category" => { "operator" => "show", "show" => "true" },
+          "ticket.ops_subcategory" => { "operator" => "show", "show" => "true" },
+          "ticket.ops_subtype" => { "operator" => "show", "show" => "true" }
+        }
         flow.active = true
         flow.stop_after_match = false
         flow.changeable = false
@@ -634,11 +639,7 @@ namespace :ops do
         flow.perform = {
           "ticket.ops_likes_count" => { "operator" => "show", "show" => "true" },
           "ticket.ops_state" => { "operator" => "show", "show" => "true" },
-          "ticket.ops_issue_type" => { "operator" => "show", "show" => "true" },
-          "ticket.address_municipality" => { "operator" => "hide", "hide" => "true" },
-          "ticket.address_municipality_district" => { "operator" => "hide", "hide" => "true" },
-          "ticket.address_street" => { "operator" => "hide", "hide" => "true" },
-          "ticket.address_house_number" => { "operator" => "hide", "hide" => "true" }
+          "ticket.ops_issue_type" => { "operator" => "show", "show" => "true" }
         }
         flow.active = true
         flow.stop_after_match = false
@@ -656,10 +657,9 @@ namespace :ops do
         }
         flow.condition_selected = {}
         flow.perform = {
-          "ticket.address_municipality" => { "operator" => "hide", "hide" => "true" },
-          "ticket.address_municipality_district" => { "operator" => "hide", "hide" => "true" },
-          "ticket.address_street" => { "operator" => "hide", "hide" => "true" },
-          "ticket.address_house_number" => { "operator" => "hide", "hide" => "true" }
+          "ticket.address_lat" => { "operator" => [ "set_readonly", "show" ], "set_readonly" => "true", "show" => "true" },
+          "ticket.address_lon" => { "operator" => [ "set_readonly", "show" ], "set_readonly" => "true", "show" => "true" },
+          "ticket.ops_portal_url" => { "operator" => [ "set_readonly", "show" ], "set_readonly" => "true", "show" => "true" }
         }
         flow.active = true
         flow.stop_after_match = false
@@ -668,6 +668,26 @@ namespace :ops do
         flow.updated_by_id = 1
         flow.created_by_id = 1
       end.save!
+
+      [ "address_municipality", "address_municipality_district", "address_street", "address_house_number", "address_postcode" ].each do |attr|
+        CoreWorkflow.find_or_initialize_by(name: "ops - show #{attr} if present").tap do |flow|
+          flow.object = "Ticket"
+          flow.preferences = { "screen" => [ "edit" ] }
+          flow.condition_saved = {
+            "ticket.#{attr}" => { "operator" => "is set", "value" => [] }
+          }
+          flow.condition_selected = {}
+          flow.perform = {
+            "ticket.#{attr}" => { "operator" => "show", "show" => "true" }
+          }
+          flow.active = true
+          flow.stop_after_match = false
+          flow.changeable = false
+          flow.priority = 99
+          flow.updated_by_id = 1
+          flow.created_by_id = 1
+        end.save!
+      end
 
       CoreWorkflow.find_or_initialize_by(name: 'ops - show ops portal url for ops public praises').tap do |flow|
         flow.object = "Ticket"
