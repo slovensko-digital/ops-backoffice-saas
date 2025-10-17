@@ -1,0 +1,49 @@
+service: "ops-backoffice-bratislava"
+
+image: "sd/ops-backoffice-bratislava"
+
+servers:
+  web:
+    hosts:
+      - 88.99.99.215
+    proxy:
+      host: bratislava.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - 88.99.99.215
+
+  worker:
+    hosts:
+      - 88.99.99.215
+
+proxy:
+  host: bratislava.odkazprestarostu.sk
+
+env:
+  clear:
+    SERVICE_NAME: ops-backoffice-bratislava
+    FQDN: bratislava.odkazprestarostu.sk
+    REDIS_URL: "redis://ops-backoffice-bratislava-redis:6379/1"
+    ELASTICSEARCH_NAMESPACE: ops-backoffice-zammad-bratislava
+    ZAMMAD_ELASTICSEARCH_USER: ops-backoffice-zammad-bratislava
+    OPS_CONNECTOR_URL: https://novy.odkazprestarostu.sk
+    OPS_PORTAL_URL: https://novy.odkazprestarostu.sk
+    ORGANIZATION: Magistrát hlavného mesta
+    PRODUCT_NAME: Backoffice Odkaz pre Starostu
+    WEBHOOK_TENANT_ID: 4
+    OPS_RESPONSIBLE_SUBJECT: Hlavné mesto SR Bratislava
+    OPS_RESPONSIBLE_SUBJECT_ID: 19
+
+    NOTIFICATION_SENDER: "Magistrát hlavného mesta | Odkaz pre Starostu"
+    NOTIFICATION_SMTP_USER: notifikacie-bratislava@odkazprestarostu.sk
+
+    POSTGRESQL_USER: ops_backoffice_bratislava
+    POSTGRESQL_DB: ops_backoffice_bratislava_production
+    POSTGRESQL_HOST: host.docker.internal
+    POSTGRESQL_OPTIONS: "?pool=50"
+
+volumes:
+  - "ops-backoffice-bratislava-storage:/opt/zammad/storage"

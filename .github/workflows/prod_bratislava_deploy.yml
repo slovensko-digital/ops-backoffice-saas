@@ -1,0 +1,14 @@
+name: PROD Bratislava Deploy
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod_bratislava
+      environment_url: https://bratislava.odkazprestarostu.sk
+
+    secrets: inherit
