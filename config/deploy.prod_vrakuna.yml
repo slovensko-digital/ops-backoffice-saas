@@ -33,7 +33,7 @@ env:
     OPS_PORTAL_URL: https://novy.odkazprestarostu.sk
     ORGANIZATION: MÚ Vrakuňa
     PRODUCT_NAME: Backoffice Odkaz pre Starostu
-    WEBHOOK_TENANT_ID: 4
+    WEBHOOK_TENANT_ID: 13
     OPS_RESPONSIBLE_SUBJECT: MÚ Vrakuňa
     OPS_RESPONSIBLE_SUBJECT_ID: 4
 

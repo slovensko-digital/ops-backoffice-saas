@@ -33,7 +33,7 @@ env:
     OPS_PORTAL_URL: https://novy.odkazprestarostu.sk
     ORGANIZATION: Magistrát hlavného mesta
     PRODUCT_NAME: Backoffice Odkaz pre Starostu
-    WEBHOOK_TENANT_ID: 4
+    WEBHOOK_TENANT_ID: 12
     OPS_RESPONSIBLE_SUBJECT: Hlavné mesto SR Bratislava
     OPS_RESPONSIBLE_SUBJECT_ID: 19
 
