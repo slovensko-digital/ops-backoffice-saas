@@ -1,0 +1,49 @@
+service: "ops-backoffice-vrakuna"
+
+image: "sd/ops-backoffice-vrakuna"
+
+servers:
+  web:
+    hosts:
+      - 88.99.99.215
+    proxy:
+      host: vrakuna.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - 88.99.99.215
+
+  worker:
+    hosts:
+      - 88.99.99.215
+
+proxy:
+  host: vrakuna.odkazprestarostu.sk
+
+env:
+  clear:
+    SERVICE_NAME: ops-backoffice-vrakuna
+    FQDN: vrakuna.odkazprestarostu.sk
+    REDIS_URL: "redis://ops-backoffice-vrakuna-redis:6379/1"
+    ELASTICSEARCH_NAMESPACE: ops-backoffice-zammad-vrakuna
+    ZAMMAD_ELASTICSEARCH_USER: ops-backoffice-zammad-vrakuna
+    OPS_CONNECTOR_URL: https://novy.odkazprestarostu.sk
+    OPS_PORTAL_URL: https://novy.odkazprestarostu.sk
+    ORGANIZATION: MÚ Vrakuňa
+    PRODUCT_NAME: Backoffice Odkaz pre Starostu
+    WEBHOOK_TENANT_ID: 13
+    OPS_RESPONSIBLE_SUBJECT: MÚ Vrakuňa
+    OPS_RESPONSIBLE_SUBJECT_ID: 4
+
+    NOTIFICATION_SENDER: "Vrakuňa | Odkaz pre Starostu"
+    NOTIFICATION_SMTP_USER: notifikacie-vrakuna@odkazprestarostu.sk
+
+    POSTGRESQL_USER: ops_backoffice_vrakuna
+    POSTGRESQL_DB: ops_backoffice_vrakuna_production
+    POSTGRESQL_HOST: host.docker.internal
+    POSTGRESQL_OPTIONS: "?pool=50"
+
+volumes:
+  - "ops-backoffice-vrakuna-storage:/opt/zammad/storage"

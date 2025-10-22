@@ -31,3 +31,15 @@ jobs:
     if: ${{ always() }}
     uses: ./.github/workflows/prod_hlohovec_deploy.yml
     secrets: inherit
+
+  prod_bratislava:
+    needs: prod_hlohovec
+    if: ${{ always() }}
+    uses: ./.github/workflows/prod_bratislava_deploy.yml
+    secrets: inherit
+
+  prod_vrakuna:
+    needs: prod_bratislava
+    if: ${{ always() }}
+    uses: ./.github/workflows/prod_vrakuna_deploy.yml
+    secrets: inherit
