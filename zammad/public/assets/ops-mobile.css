@@ -1,0 +1,17 @@
+/* Ticket overview */
+
+/* Hide merge button */
+[data-common-dialog] button:has(.icon-merge) {
+    display: none;
+}
+
+/* Make file preview icon bigger */
+.group\/file-preview button {
+    width: 120px !important;
+    height: 120px !important;
+}
+
+.group\/file-preview button img {
+    width: 120px !important;
+    height: 120px !important;
+}
