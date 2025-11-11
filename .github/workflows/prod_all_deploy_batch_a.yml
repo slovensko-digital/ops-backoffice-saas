@@ -8,14 +8,8 @@ jobs:
     uses: ./.github/workflows/prod_pezinok_deploy.yml
     secrets: inherit
 
-  prod_prievidza:
-    needs: prod_pezinok
-    if: ${{ always() }}
-    uses: ./.github/workflows/prod_prievidza_deploy.yml
-    secrets: inherit
-
   prod_dolnykubin:
-    needs: prod_prievidza
+    needs: prod_pezinok
     if: ${{ always() }}
     uses: ./.github/workflows/prod_dolnykubin_deploy.yml
     secrets: inherit
