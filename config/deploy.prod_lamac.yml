@@ -1,0 +1,49 @@
+service: "ops-backoffice-lamac"
+
+image: "sd/ops-backoffice-lamac"
+
+servers:
+  web:
+    hosts:
+      - 88.99.99.215
+    proxy:
+      host: lamac.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - 88.99.99.215
+
+  worker:
+    hosts:
+      - 88.99.99.215
+
+proxy:
+  host: lamac.odkazprestarostu.sk
+
+env:
+  clear:
+    SERVICE_NAME: ops-backoffice-lamac
+    FQDN: lamac.odkazprestarostu.sk
+    REDIS_URL: "redis://ops-backoffice-lamac-redis:6379/1"
+    ELASTICSEARCH_NAMESPACE: ops-backoffice-zammad-lamac
+    ZAMMAD_ELASTICSEARCH_USER: ops-backoffice-zammad-lamac
+    OPS_CONNECTOR_URL: https://novy.odkazprestarostu.sk
+    OPS_PORTAL_URL: https://novy.odkazprestarostu.sk
+    ORGANIZATION: Lamač
+    PRODUCT_NAME: Backoffice
+    WEBHOOK_TENANT_ID: 14
+    OPS_RESPONSIBLE_SUBJECT: MÚ Lamač
+    OPS_RESPONSIBLE_SUBJECT_ID: 11
+
+    NOTIFICATION_SENDER: "Lamač | Backoffice"
+    NOTIFICATION_SMTP_USER: notifikacie-lamac@odkazprestarostu.sk
+
+    POSTGRESQL_USER: ops_backoffice_lamac
+    POSTGRESQL_DB: ops_backoffice_lamac_production
+    POSTGRESQL_HOST: host.docker.internal
+    POSTGRESQL_OPTIONS: "?pool=50"
+
+volumes:
+  - "ops-backoffice-lamac-storage:/opt/zammad/storage"
