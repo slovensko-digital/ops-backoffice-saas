@@ -26,22 +26,6 @@ docker compose up -d --build
 Wait untill `ops-backoffice-saas-zammad-init` container is done.
 
 
-## Deployments in the wild
-
-### DEV
-
-- [staremesto-ba.ops.dev.slovensko.digital](https://staremesto-ba.ops.dev.slovensko.digital)
-- [magistrat-ba.ops.dev.slovensko.digital](https://magistrat-ba.ops.dev.slovensko.digital)
-- [malacky.ops.dev.slovensko.digital](https://malacky.ops.dev.slovensko.digital)
-- [stupava.ops.dev.slovensko.digital](https://stupava.ops.dev.slovensko.digital)
-
-
-### PROD
-
-IP: `88.99.99.215`:
-- [malacky.odkazprestarostu.sk](https://malacky.odkazprestarostu.sk)
-
-
 ## Available kamal aliases
 
 ```
