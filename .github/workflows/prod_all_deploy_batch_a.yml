@@ -4,13 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  prod_pezinok:
-    uses: ./.github/workflows/prod_pezinok_deploy.yml
-    secrets: inherit
-
   prod_lamac:
-    needs: prod_pezinok
-    if: ${{ always() }}
     uses: ./.github/workflows/prod_lamac_deploy.yml
     secrets: inherit
 
