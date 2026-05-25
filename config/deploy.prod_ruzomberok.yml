@@ -1,0 +1,49 @@
+service: "ops-backoffice-ruzomberok"
+
+image: "sd/ops-backoffice-ruzomberok"
+
+servers:
+  web:
+    hosts:
+      - 195.201.202.110
+    proxy:
+      host: ruzomberok.odkazprestarostu.sk
+    options:
+      memory: 1.5g
+
+  websocket:
+    hosts:
+      - 195.201.202.110
+
+  worker:
+    hosts:
+      - 195.201.202.110
+
+proxy:
+  host: ruzomberok.odkazprestarostu.sk
+
+env:
+  clear:
+    SERVICE_NAME: ops-backoffice-ruzomberok
+    FQDN: ruzomberok.odkazprestarostu.sk
+    REDIS_URL: "redis://ops-backoffice-ruzomberok-redis:6379/1"
+    ELASTICSEARCH_NAMESPACE: ops-backoffice-ruzomberok
+    ZAMMAD_ELASTICSEARCH_USER: ops-backoffice-ruzomberok
+    OPS_CONNECTOR_URL: https://novy.odkazprestarostu.sk
+    OPS_PORTAL_URL: https://novy.odkazprestarostu.sk
+    ORGANIZATION: Ružomberok
+    PRODUCT_NAME: Backoffice
+    WEBHOOK_TENANT_ID: 15
+    OPS_RESPONSIBLE_SUBJECT: Ružomberok
+    OPS_RESPONSIBLE_SUBJECT_ID: 243
+
+    NOTIFICATION_SENDER: "Ružomberok | Backoffice"
+    NOTIFICATION_SMTP_USER: notifikacie-ruzomberok@odkazprestarostu.sk
+
+    POSTGRESQL_USER: ops_backoffice_ruzomberok
+    POSTGRESQL_DB: ops_backoffice_ruzomberok_production
+    POSTGRESQL_HOST: host.docker.internal
+    POSTGRESQL_OPTIONS: "?pool=50"
+
+volumes:
+  - "ops-backoffice-ruzomberok-storage:/opt/zammad/storage"

@@ -1,4 +1,4 @@
-name: PROD Pezinok Deploy
+name: PROD Ružomberok Deploy
 
 on:
   workflow_call:
@@ -8,7 +8,7 @@ jobs:
   deploy:
     uses: ./.github/workflows/deploy.yml
     with:
-      environment: prod_pezinok
-      environment_url: https://pezinok.odkazprestarostu.sk
+      environment: prod_ruzomberok
+      environment_url: https://ruzomberok.odkazprestarostu.sk
 
     secrets: inherit

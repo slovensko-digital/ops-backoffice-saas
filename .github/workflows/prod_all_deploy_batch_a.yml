@@ -4,13 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  prod_pezinok:
-    uses: ./.github/workflows/prod_pezinok_deploy.yml
-    secrets: inherit
-
   prod_lamac:
-    needs: prod_pezinok
-    if: ${{ always() }}
     uses: ./.github/workflows/prod_lamac_deploy.yml
     secrets: inherit
 
@@ -30,4 +24,10 @@ jobs:
     needs: prod_nitra
     if: ${{ always() }}
     uses: ./.github/workflows/prod_trnava_deploy.yml
+    secrets: inherit
+
+  prod_ruzomberok:
+    needs: prod_trnava
+    if: ${{ always() }}
+    uses: ./.github/workflows/prod_ruzomberok_deploy.yml
     secrets: inherit
