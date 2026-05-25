@@ -25,3 +25,9 @@ jobs:
     if: ${{ always() }}
     uses: ./.github/workflows/prod_trnava_deploy.yml
     secrets: inherit
+
+  prod_ruzomberok:
+    needs: prod_trnava
+    if: ${{ always() }}
+    uses: ./.github/workflows/prod_ruzomberok_deploy.yml
+    secrets: inherit
