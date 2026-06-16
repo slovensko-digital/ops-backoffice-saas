@@ -49,7 +49,7 @@ env:
     ADMIN_FIRSTNAME: Superadmin
     ADMIN_LASTNAME: OPS
     DEFAULT_LOCALE: sk
-    RAILS_LOG_LEVEL: <%= ENV.fetch('RAILS_LOG_LEVEL', 'info') %>
+    RAILS_LOG_LEVEL: <%= ENV.fetch('RAILS_LOG_LEVEL', 'warn') %>
     Z_LOCALES: <%= ENV.fetch('Z_LOCALES', 'sk:en-us') %>
 
   secret:
