@@ -52,6 +52,7 @@ jobs:
           ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL }}
           NOTIFICATION_SMTP_PASSWORD: ${{ secrets.NOTIFICATION_SMTP_PASSWORD }}
           MONITORING_TOKEN: ${{ vars.MONITORING_TOKEN }}
+          RAILS_LOG_LEVEL: ${{ vars.RAILS_LOG_LEVEL }}
 
         run: |
           kamal accessory reboot -d ${{ inputs.environment }} all
