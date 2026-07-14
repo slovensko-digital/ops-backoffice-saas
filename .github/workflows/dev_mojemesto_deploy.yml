@@ -1,0 +1,14 @@
+name: DEV Moje Mesto Deploy
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: dev_mojemesto
+      environment_url: https://mojemesto.ops.dev.slovensko.digital
+
+    secrets: inherit

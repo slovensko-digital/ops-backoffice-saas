@@ -4,7 +4,13 @@ on:
   workflow_dispatch:
 
 jobs:
+  dev_mojemesto:
+    uses: ./.github/workflows/dev_mojemesto_deploy.yml
+    secrets: inherit
+
   dev_magistrat_ba:
+    needs: dev_mojemesto
+    if: ${{ always() }}
     uses: ./.github/workflows/dev_magistrat_ba_deploy.yml
     secrets: inherit
 
