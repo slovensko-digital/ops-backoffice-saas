@@ -33,9 +33,9 @@ env:
     OPS_PORTAL_URL: https://ops.dev.slovensko.digital
     ORGANIZATION: Moje Mesto
     PRODUCT_NAME: Backoffice
-    WEBHOOK_TENANT_ID: 5
+    WEBHOOK_TENANT_ID: 10
     OPS_RESPONSIBLE_SUBJECT: Moje Mesto
-    OPS_RESPONSIBLE_SUBJECT_ID: 18
+    OPS_RESPONSIBLE_SUBJECT_ID: 416
 
     NOTIFICATION_SENDER: "DEV | Moje Mesto | Backoffice"
     NOTIFICATION_SMTP_USER: noreply-mojemesto@ops.dev.slovensko.digital
