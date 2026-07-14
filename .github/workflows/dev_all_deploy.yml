@@ -14,20 +14,8 @@ jobs:
     uses: ./.github/workflows/dev_magistrat_ba_deploy.yml
     secrets: inherit
 
-  dev_stupava:
+  dev_malacky:
     needs: dev_magistrat_ba
     if: ${{ always() }}
-    uses: ./.github/workflows/dev_stupava_deploy.yml
-    secrets: inherit
-
-  dev_malacky:
-    needs: dev_stupava
-    if: ${{ always() }}
     uses: ./.github/workflows/dev_malacky_deploy.yml
-    secrets: inherit
-
-  dev_staremesto_ba:
-    needs: dev_malacky
-    if: ${{ always() }}
-    uses: ./.github/workflows/dev_staremesto_ba_deploy.yml
     secrets: inherit
