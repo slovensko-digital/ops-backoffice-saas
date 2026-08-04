@@ -9,7 +9,7 @@ servers:
     proxy:
       host: bratislava.odkazprestarostu.sk
     options:
-      memory: 1.5g
+      memory: 2.5g
 
   websocket:
     hosts:
@@ -18,6 +18,8 @@ servers:
   worker:
     hosts:
       - 195.201.202.110
+    options:
+      memory: 2.5g
 
 proxy:
   host: bratislava.odkazprestarostu.sk
