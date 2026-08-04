@@ -13,6 +13,7 @@ servers:
     cmd: "zammad-websocket"
     options:
       add-host: host.docker.internal:host-gateway
+      memory: 1g
     proxy:
       path_prefix: /ws
       strip_path_prefix: true
@@ -24,6 +25,7 @@ servers:
     cmd: "zammad-scheduler"
     options:
       add-host: host.docker.internal:host-gateway
+      memory: 1.5g
 
 deploy_timeout: 150
 
