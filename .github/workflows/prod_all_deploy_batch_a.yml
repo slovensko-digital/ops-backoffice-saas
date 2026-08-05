@@ -8,14 +8,8 @@ jobs:
     uses: ./.github/workflows/prod_lamac_deploy.yml
     secrets: inherit
 
-  prod_dubnica:
-    needs: prod_lamac
-    if: ${{ always() }}
-    uses: ./.github/workflows/prod_dubnica_deploy.yml
-    secrets: inherit
-
   prod_nitra:
-    needs: prod_dubnica
+    needs: prod_lamac
     if: ${{ always() }}
     uses: ./.github/workflows/prod_nitra_deploy.yml
     secrets: inherit
