@@ -15,7 +15,7 @@ def setup_admin_user
   }
 
   request = RequestMock.new('127.0.0.1', { 'HTTP_ACCEPT_LANGUAGE' => ENV.fetch('DEFAULT_LOCALE', 'sk') })
-  Service::User::AddFirstAdmin.new.execute(user_data: admin_user_data, request: request)
+  Service::User::AddFirstAdmin.new(user_data: admin_user_data, request: request).execute
 end
 
 def setup_technical_user(role_ids)
@@ -104,7 +104,6 @@ def create_subject_admin_role
   role.permission_grant("admin.channel_microsoft365")
   role.permission_grant("admin.channel_sms")
   role.permission_grant("admin.channel_telegram")
-  role.permission_grant("admin.channel_twitter")
   role.permission_grant("admin.channel_web")
   role.permission_grant("admin.channel_whatsapp")
   role.permission_grant("admin.integration")
