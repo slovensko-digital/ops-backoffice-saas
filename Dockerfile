@@ -1,7 +1,7 @@
-FROM zammad/zammad-docker-compose:6.5.0-47
+FROM zammad/zammad-docker-compose:7.2
 
 # allow creation of customer articles in triggers
-RUN sed -i "s/Ticket::Article::Sender.find_by(name: 'System')/Ticket::Article::Sender.find_by(name: note[:sender] || 'System')/" app/models/ticket/perform_changes/action/article_note.rb
+RUN sed -i "s/Ticket::Article::Sender.find_by(name: 'System')/Ticket::Article::Sender.find_by(name: execution_data[:sender] || 'System')/" app/models/ticket/perform_changes/action/article_note.rb
 
 COPY --chown=zammad:zammad ./config/zammad_init_and_railsserver.sh /opt/zammad_init_and_railsserver.sh
 
