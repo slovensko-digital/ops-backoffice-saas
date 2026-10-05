@@ -1,5 +1,5 @@
 module Ops::Service::Ticket::Article::ChangeVisibilityExtensions
-  def execute(article:, internal:)
+  def execute
     # mobile version change visibility
     Service::Ticket::Update::Validator::OpsEnsureRoleForArticleVisibilityChange.new(
       ticket: article.ticket,
