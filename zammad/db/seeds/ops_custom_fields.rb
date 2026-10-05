@@ -1,3 +1,9 @@
+# Models.all is memoized by config/initializers/models_preload.rb at boot, which on a fresh
+# install happens before db:migrate (no tables yet), leaving it empty. Since Zammad 7.2
+# ObjectLookup.to_class relies on it, so reset it before adding attributes without force.
+Models.instance_variable_set(:@all, nil)
+Auth::RequestCache.clear
+
 ObjectManager::Attribute.add(
   object: 'Ticket',
   name: 'address_lat',
