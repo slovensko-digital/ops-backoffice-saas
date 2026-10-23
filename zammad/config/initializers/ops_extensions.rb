@@ -4,4 +4,5 @@ ActiveSupport.on_load(:after_initialize) do
   CreatesTicketArticles.prepend Ops::CreatesTicketArticlesExtensions
   User.prepend Ops::UserExtensions
   Checklist.prepend Ops::ChecklistExtensions
+  Store.prepend Ops::StoreExtensions
 end
