@@ -44,8 +44,8 @@ env:
     POSTGRESQL_DB_CREATE: false
     HTTP_TYPE: https
 
-    NOTIFICATION_SMTP_HOST: smtp.m1.websupport.sk
-    NOTIFICATION_SMTP_PORT: 587
+    NOTIFICATION_SMTP_HOST: <%= ENV['NOTIFICATION_SMTP_HOST'].presence || 'smtp.m1.websupport.sk' %>
+    NOTIFICATION_SMTP_PORT: <%= ENV['NOTIFICATION_SMTP_PORT'].presence || 587 %>
 
     ADMIN_EMAIL: <%= ENV.fetch('ADMIN_EMAIL', 'admin@example.com') %>
     ADMIN_FIRSTNAME: Superadmin
@@ -64,6 +64,7 @@ env:
     - ZAMMAD_ELASTICSEARCH_PASSWORD
     - WEBHOOK_SECRET
     - S3_URL
+    - NOTIFICATION_SMTP_USER
     - NOTIFICATION_SMTP_PASSWORD
     - MONITORING_TOKEN
 

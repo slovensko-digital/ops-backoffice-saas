@@ -38,7 +38,7 @@ env:
     OPS_RESPONSIBLE_SUBJECT_ID: 23
 
     NOTIFICATION_SENDER: "Trnava | Backoffice"
-    NOTIFICATION_SMTP_USER: notifikacie-trnava@odkazprestarostu.sk
+    NOTIFICATION_SENDER_EMAIL: notifikacie-trnava@odkazprestarostu.sk
 
     POSTGRESQL_USER: ops_backoffice_trnava
     POSTGRESQL_DB: ops_backoffice_trnava_production

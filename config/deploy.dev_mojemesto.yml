@@ -38,7 +38,7 @@ env:
     OPS_RESPONSIBLE_SUBJECT_ID: 416
 
     NOTIFICATION_SENDER: "DEV | Moje Mesto | Backoffice"
-    NOTIFICATION_SMTP_USER: noreply-mojemesto@ops.dev.slovensko.digital
+    NOTIFICATION_SENDER_EMAIL: noreply-mojemesto@ops.dev.slovensko.digital
 
     POSTGRESQL_USER: ops_backoffice_mojemesto
     POSTGRESQL_DB: ops_backoffice_mojemesto_staging

@@ -38,7 +38,7 @@ env:
     OPS_RESPONSIBLE_SUBJECT_ID: 11
 
     NOTIFICATION_SENDER: "Lamač | Backoffice"
-    NOTIFICATION_SMTP_USER: notifikacie-lamac@odkazprestarostu.sk
+    NOTIFICATION_SENDER_EMAIL: notifikacie-lamac@odkazprestarostu.sk
 
     POSTGRESQL_USER: ops_backoffice_lamac
     POSTGRESQL_DB: ops_backoffice_lamac_production

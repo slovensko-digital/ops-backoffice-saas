@@ -38,7 +38,7 @@ env:
     OPS_RESPONSIBLE_SUBJECT_ID: 243
 
     NOTIFICATION_SENDER: "Ružomberok | Backoffice"
-    NOTIFICATION_SMTP_USER: notifikacie-ruzomberok@odkazprestarostu.sk
+    NOTIFICATION_SENDER_EMAIL: notifikacie-ruzomberok@odkazprestarostu.sk
 
     POSTGRESQL_USER: ops_backoffice_ruzomberok
     POSTGRESQL_DB: ops_backoffice_ruzomberok_production

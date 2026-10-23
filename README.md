@@ -70,6 +70,13 @@ ADMIN_EMAIL                     # email address of the first admin user created 
 MONITORING_TOKEN                # secret token that is used to call zammad's healthcheck
 ```
 
+Optional variables:
+
+```
+NOTIFICATION_SMTP_HOST          # SMTP server for notification email, defaults to smtp.m1.websupport.sk
+NOTIFICATION_SMTP_PORT          # defaults to 587
+```
+
 Secrets:
 
 ```
@@ -84,6 +91,7 @@ ADMIN_PASSWORD
 Optional secrets:
 
 ```
+NOTIFICATION_SMTP_USER          # SMTP login for notification email, defaults to NOTIFICATION_SENDER_EMAIL from the deploy config
 NOTIFICATION_SMTP_PASSWORD      # Password for notification email
 S3_URL                          # Database storage will be used if not provided
 GOOGLE_OAUTH2_CLIENT_ID         #
