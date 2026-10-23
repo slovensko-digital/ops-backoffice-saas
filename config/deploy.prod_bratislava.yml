@@ -40,7 +40,7 @@ env:
     OPS_RESPONSIBLE_SUBJECT_ID: 19
 
     NOTIFICATION_SENDER: "Magistrát hlavného mesta | Odkaz pre Starostu"
-    NOTIFICATION_SMTP_USER: notifikacie-bratislava@odkazprestarostu.sk
+    NOTIFICATION_SENDER_EMAIL: notifikacie-bratislava@odkazprestarostu.sk
 
     POSTGRESQL_USER: ops_backoffice_bratislava
     POSTGRESQL_DB: ops_backoffice_bratislava_production

@@ -38,7 +38,7 @@ env:
     OPS_RESPONSIBLE_SUBJECT_ID: 44
 
     NOTIFICATION_SENDER: "Hlohovec | Backoffice"
-    NOTIFICATION_SMTP_USER: notifikacie-hlohovec@odkazprestarostu.sk
+    NOTIFICATION_SENDER_EMAIL: notifikacie-hlohovec@odkazprestarostu.sk
 
     POSTGRESQL_USER: ops_backoffice_hlohovec
     POSTGRESQL_DB: ops_backoffice_hlohovec_production

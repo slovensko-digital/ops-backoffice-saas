@@ -170,7 +170,7 @@ def setup_elastic
 end
 
 def setup_notifications
-  Setting.set('notification_sender', "#{ENV.fetch('NOTIFICATION_SENDER')} <#{ENV.fetch('NOTIFICATION_SMTP_USER')}>")
+  Setting.set('notification_sender', "#{ENV.fetch('NOTIFICATION_SENDER')} <#{ENV.fetch('NOTIFICATION_SENDER_EMAIL')}>")
 
   Channel.where(area: "Email::Notification").select{ |ch| ch.options[:outbound][:adapter] == "smtp" }.first.update!(
     options: {
@@ -178,7 +178,8 @@ def setup_notifications
         "adapter" => "smtp",
         "options" => {
           "host" => ENV.fetch('NOTIFICATION_SMTP_HOST'),
-          "user" => ENV.fetch('NOTIFICATION_SMTP_USER'),
+          # SMTP login may differ from the sender address (e.g. Amazon SES), defaults to the sender address
+          "user" => ENV['NOTIFICATION_SMTP_USER'].presence || ENV.fetch('NOTIFICATION_SENDER_EMAIL'),
           "password" => ENV.fetch('NOTIFICATION_SMTP_PASSWORD'),
           "port" => ENV.fetch('NOTIFICATION_SMTP_PORT'),
           "ssl_verify" => true,
@@ -309,7 +310,7 @@ namespace :ops do
 
       create_subject_admin_role
 
-      setup_notifications if ENV['NOTIFICATION_SENDER'].present? && ENV['NOTIFICATION_SMTP_PASSWORD'].present? && ENV['NOTIFICATION_SMTP_USER'].present?
+      setup_notifications if ENV['NOTIFICATION_SENDER'].present? && ENV['NOTIFICATION_SMTP_PASSWORD'].present? && ENV['NOTIFICATION_SENDER_EMAIL'].present?
 
       Setting.set("monitoring_token", ENV['MONITORING_TOKEN']) if ENV['MONITORING_TOKEN'].present?
 

@@ -38,7 +38,7 @@ env:
     OPS_RESPONSIBLE_SUBJECT_ID: 218
 
     NOTIFICATION_SENDER: "Sabinov | Backoffice"
-    NOTIFICATION_SMTP_USER: notifikacie-sabinov@odkazprestarostu.sk
+    NOTIFICATION_SENDER_EMAIL: notifikacie-sabinov@odkazprestarostu.sk
 
     POSTGRESQL_USER: ops_backoffice_sabinov
     POSTGRESQL_DB: ops_backoffice_sabinov_production
