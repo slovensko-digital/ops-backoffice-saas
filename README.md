@@ -2,21 +2,40 @@
 
 ## Local development
 
+### Next to the local portal
+
+Run one Backoffice per PRO responsible subject of the local portal, e.g. Malacky and Trnava, to click through a hand-off from one Backoffice to the other. The portal's `bin/activate-seeded-municipalities` activates them as PRO and prints the command that starts each one, see "Local Backoffice" in the [ops-portal README](https://github.com/slovensko-digital/ops-portal#local-backoffice):
+
+```
+dev/up malacky 1 Malacky 22 1 <api token> <webhook secret>
+```
+
+`dev/up <instance> <slot> ...` writes the values to `.env.<instance>` and starts the docker compose project `ops-backoffice-<instance>` with its own containers and volumes:
+
+| Slot | Backoffice | Mailpit |
+|---|---|---|
+| 1 | http://malacky.localhost:8081 | http://localhost:8026 |
+| 2 | http://trnava.localhost:8082 | http://localhost:8027 |
+
+- Login `admin@example.org` / `PASSword123`, like the local Triage. Each Backoffice has a host name of its own: cookies ignore ports, so Backoffices (and Triage on `localhost:8080`) on the same host name log each other out. Chrome and Firefox resolve `*.localhost` without any setup.
+- The first start runs `zammad-init` and takes a few minutes.
+- Then `dev/compose <instance> ...` runs docker compose for it: `dev/compose malacky up -d` every day, `dev/compose malacky down -v` to wipe it.
+- The Backoffice calls the portal on the host at `http://host.docker.internal:3000`.
+
+### On its own
+
 ```
 docker compose up -d --build
 ```
 
-- Backoffice: http://127.0.0.1:8081 (`example@example.org` / `PASSword123`). Use `127.0.0.1`, not `localhost`: cookies ignore ports, so a local Triage on `localhost:8080` and the Backoffice would log each other out. The first start runs `zammad-init`, wait until the `zammad-init` container is done.
-- Mailpit: http://localhost:8026. Every email the Backoffice sends lands here, never in a real inbox (`dev/mail_catcher.rb`, mounted by `docker-compose.yml` only). The local Triage's Mailpit is on 8025.
+Backoffice on http://127.0.0.1:8081 and Mailpit on http://localhost:8026, the same ports as slot 1. Settings come from `.env.sample`, put local overrides into `.env`. After changing `.env`, run `docker compose up -d --force-recreate`, the init sets the webhooks again with the new values.
+
+### Both ways
+
+- Mailpit: every email the Backoffice sends lands here, never in a real inbox (`dev/mail_catcher.rb`, mounted by `docker-compose.yml` only).
 - `zammad-dev-setup` gives the portal's tech account all groups right away (`dev/setup.rb`), so subtasks work without waiting for the 15-minute scheduler.
-- Settings come from `.env.sample`, put local overrides into `.env`. It is the Backoffice of Malacky in the ops-portal dev seeds: responsible subject `OPS_RESPONSIBLE_SUBJECT_ID`, `Connector::Tenant` `WEBHOOK_TENANT_ID`, with the same `API_TOKEN` and `WEBHOOK_SECRET`. The Backoffice calls the portal on the host at `http://host.docker.internal:3000`.
-- After changing `.env`, run `docker compose up -d --force-recreate`, the init sets the webhooks again with the new values.
-
-To apply code changes, run `docker compose up -d --build` again.
-
-Two Zammads (Triage and Backoffice) need about 3 GB of Docker Desktop memory (Settings → Resources). When memory runs out, Zammad containers exit with code 137.
-
-To click through together with the portal and Triage, follow "Local Backoffice" in the [ops-portal README](https://github.com/slovensko-digital/ops-portal#local-backoffice).
+- To apply code changes, run `docker compose up -d --build` (or `dev/compose <instance> up -d --build`) again.
+- Each Zammad needs about 1.5 GB of Docker Desktop memory, Triage and two Backoffices about 4.5 GB (Settings → Resources). When memory runs out, Zammad containers exit with code 137.
 
 
 ## Available kamal aliases

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Local development only: starts a Backoffice for a responsible subject of the local portal, next to others.
+#
+#   dev/up <instance> <slot> <responsible subject> <responsible subject id> <tenant id> <api token> <webhook secret>
+#   dev/up malacky 1 Malacky 22 1 local-dev-malacky-backoffice-api-token-not-a-secret local-dev-malacky-backoffice-webhook-secret-not-a-secret
+#
+# The portal's bin/activate-seeded-municipalities prints this command with the values of its
+# responsible_subjects:activate_pro. Writes them to .env.<instance> (on top of .env.sample) and starts the
+# docker compose project ops-backoffice-<instance>, with its own containers and volumes:
+#   - Backoffice on http://<instance>.localhost:<8080 + slot>, a host name of its own, cookies ignore ports
+#   - Mailpit on http://localhost:<8025 + slot>
+# Run it again after changing a value, it recreates the containers, the init sets the webhooks again.
+# Then use dev/compose <instance> ..., e.g. dev/compose malacky up -d.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+if [ $# -ne 7 ]; then
+  sed -n '2,4p' "$0" | sed 's/^# \{0,1\}//' >&2
+  exit 1
+fi
+instance=$1 slot=$2 name=$3 responsible_subject_id=$4 tenant_id=$5 api_token=$6 webhook_secret=$7
+[[ $instance =~ ^[a-z0-9-]+$ ]] || { echo "instance must be lowercase letters, digits and -, e.g. malacky" >&2; exit 1; }
+[[ $slot =~ ^[1-9]$ ]] || { echo "slot must be 1 to 9" >&2; exit 1; }
+port=$((8080 + slot))
+mail_port=$((8025 + slot))
+
+cat > ".env.$instance" <<ENV
+# written by dev/up, local development only
+BACKOFFICE_ENV_FILE=.env.$instance
+NGINX_EXPOSE_PORT=$port
+MAILPIT_EXPOSE_PORT=$mail_port
+FQDN=$instance.localhost:$port
+ORGANIZATION="$name"
+NOTIFICATION_SENDER="$name | Backoffice"
+OPS_RESPONSIBLE_SUBJECT="$name"
+OPS_RESPONSIBLE_SUBJECT_ID=$responsible_subject_id
+WEBHOOK_TENANT_ID=$tenant_id
+API_TOKEN=$api_token
+WEBHOOK_SECRET=$webhook_secret
+OPS_CONNECTOR_URL=http://host.docker.internal:3000
+OPS_PORTAL_URL=http://host.docker.internal:3000
+ENV
+
+dev/compose "$instance" up -d --build --force-recreate
+echo "Backoffice $name: http://$instance.localhost:$port (first start takes a few minutes), Mailpit: http://localhost:$mail_port"
