@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Local development only: runs docker compose for a Backoffice started by dev/up, as its own project
+# ops-backoffice-<instance> with the settings in .env.<instance>.
+#
+#   dev/compose malacky up -d      # start it again, e.g. every day
+#   dev/compose malacky logs -f zammad-railsserver
+#   dev/compose malacky down -v    # wipe it, then run dev/up again
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+instance=${1:?usage: dev/compose <instance> <docker compose arguments>}
+shift
+[ -f ".env.$instance" ] || { echo "No .env.$instance, start the Backoffice with dev/up first" >&2; exit 1; }
+
+exec docker compose -p "ops-backoffice-$instance" --env-file ".env.$instance" "$@"
