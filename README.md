@@ -17,7 +17,7 @@ dev/up malacky 1 Malacky 22 1 <api token> <webhook secret>
 | 1 | http://malacky.localhost:8081 | http://localhost:8026 |
 | 2 | http://trnava.localhost:8082 | http://localhost:8027 |
 
-- Login `example@example.org` / `PASSword123`. Each Backoffice has a host name of its own: cookies ignore ports, so Backoffices (and Triage on `localhost:8080`) on the same host name log each other out. Chrome and Firefox resolve `*.localhost` without any setup.
+- Login `admin@example.org` / `PASSword123`, like the local Triage. Each Backoffice has a host name of its own: cookies ignore ports, so Backoffices (and Triage on `localhost:8080`) on the same host name log each other out. Chrome and Firefox resolve `*.localhost` without any setup.
 - The first start runs `zammad-init` and takes a few minutes.
 - Then `dev/compose <instance> ...` runs docker compose for it: `dev/compose malacky up -d` every day, `dev/compose malacky down -v` to wipe it.
 - The Backoffice calls the portal on the host at `http://host.docker.internal:3000`.
