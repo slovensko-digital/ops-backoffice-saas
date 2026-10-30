@@ -1,29 +1,22 @@
 # Odkaz pre starostu - BackOffice - SaaS
 
-## How to run it
+## Local development
 
 ```
 docker compose up -d --build
 ```
 
-App should be available on [http://localhost:8081](http://localhost:8081) after about 30 seconds initially. Default login is:
+- Backoffice: http://127.0.0.1:8081 (`example@example.org` / `PASSword123`). Use `127.0.0.1`, not `localhost`: cookies ignore ports, so a local Triage on `localhost:8080` and the Backoffice would log each other out. The first start runs `zammad-init`, wait until the `zammad-init` container is done.
+- Mailpit: http://localhost:8026. Every email the Backoffice sends lands here, never in a real inbox (`dev/mail_catcher.rb`, mounted by `docker-compose.yml` only). The local Triage's Mailpit is on 8025.
+- `zammad-dev-setup` gives the portal's tech account all groups right away (`dev/setup.rb`), so subtasks work without waiting for the 15-minute scheduler.
+- Settings come from `.env.sample`, put local overrides into `.env`. It is the Backoffice of Malacky in the ops-portal dev seeds: responsible subject `OPS_RESPONSIBLE_SUBJECT_ID`, `Connector::Tenant` `WEBHOOK_TENANT_ID`, with the same `API_TOKEN` and `WEBHOOK_SECRET`. The Backoffice calls the portal on the host at `http://host.docker.internal:3000`.
+- After changing `.env`, run `docker compose up -d --force-recreate`, the init sets the webhooks again with the new values.
 
-```
-example@example.org
-PASSword123
-```
+To apply code changes, run `docker compose up -d --build` again.
 
-Default ENVs are in `.env.sample`. Copy them to `.env` and customize if needed.
+Two Zammads (Triage and Backoffice) need about 3 GB of Docker Desktop memory (Settings → Resources). When memory runs out, Zammad containers exit with code 137.
 
-### Development
-
-If you want to apply changes to the containers, run this again:
-
-```
-docker compose up -d --build
-```
-
-Wait untill `ops-backoffice-saas-zammad-init` container is done.
+To click through together with the portal and Triage, follow "Local Backoffice" in the [ops-portal README](https://github.com/slovensko-digital/ops-portal#local-backoffice).
 
 
 ## Available kamal aliases
