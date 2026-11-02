@@ -39,6 +39,8 @@ API_TOKEN=$api_token
 WEBHOOK_SECRET=$webhook_secret
 OPS_CONNECTOR_URL=http://host.docker.internal:3000
 OPS_PORTAL_URL=http://host.docker.internal:3000
+# no demo tickets next to the portal's, dev/setup.rb gives the admin what the sample tickets did
+CREATE_SAMPLE_TICKET=false
 ENV
 
 dev/compose "$instance" up -d --build --force-recreate
