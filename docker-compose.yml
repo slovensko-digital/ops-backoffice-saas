@@ -56,6 +56,9 @@ x-shared:
         required: false
       - path: .env
         required: false
+      # a local Backoffice started by dev/up, e.g. .env.malacky
+      - path: ${BACKOFFICE_ENV_FILE:-.env}
+        required: false
 
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -118,7 +121,7 @@ services:
     command: ["bundle", "exec", "rails", "r", "/opt/ops-dev/setup.rb"]
     restart: on-failure
 
-  # 8026, the local Triage's Mailpit has 8025
+  # 8026, the local Triage's Mailpit has 8025, dev/up gives each Backoffice its own port
   zammad-mailpit:
     image: axllent/mailpit:${MAILPIT_VERSION:-v1.27}
     restart: ${RESTART:-always}
