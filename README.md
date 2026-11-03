@@ -19,7 +19,7 @@ dev/up malacky 1 Malacky 22 1 <api token> <webhook secret>
 
 - Login `admin@example.org` / `PASSword123`, like the local Triage. Each Backoffice has a host name of its own: cookies ignore ports, so Backoffices (and Triage on `localhost:8080`) on the same host name log each other out. Chrome and Firefox resolve `*.localhost` without any setup.
 - The first start runs `zammad-init` and takes a few minutes.
-- No sample tickets, the Backoffice has only the portal's tickets. `dev/setup.rb` gives the admin the Incoming group and the role "Správca podnetov pre OPS" instead, which the sample tickets did, and removes Zammad's welcome ticket.
+- No sample tickets, the Backoffice has only the portal's tickets. `dev/setup.rb` removes Zammad's welcome ticket. It gives the admin the Incoming group and the role "Správca podnetov pre OPS" on every start, with or without sample tickets.
 - Then `dev/compose <instance> ...` runs docker compose for it: `dev/compose malacky up -d` every day, `dev/compose malacky down -v` to wipe it.
 - The Backoffice calls the portal on the host at `http://host.docker.internal:3000`.
 
