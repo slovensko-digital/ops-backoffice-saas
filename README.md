@@ -19,8 +19,27 @@ dev/up malacky 1 Malacky 22 1 <api token> <webhook secret>
 
 - Login `admin@example.org` / `PASSword123`, like the local Triage. Each Backoffice has a host name of its own: cookies ignore ports, so Backoffices (and Triage on `localhost:8080`) on the same host name log each other out. Chrome and Firefox resolve `*.localhost` without any setup.
 - The first start runs `zammad-init` and takes a few minutes.
-- Then `dev/compose <instance> ...` runs docker compose for it: `dev/compose malacky up -d` every day, `dev/compose malacky down -v` to wipe it.
+- No OPS sample tickets, only Zammad's welcome ticket and the portal's tickets. `dev/setup.rb` gives the admin the Incoming group and the role "Správca podnetov pre OPS" on every start, which the sample tickets did.
 - The Backoffice calls the portal on the host at `http://host.docker.internal:3000`.
+
+| Command | When |
+|---|---|
+| `dev/up <instance> <slot> ...` | the first start, and whenever the portal's values change (e.g. after a portal reset). Writes `.env.<instance>`, then runs `dev/compose <instance> up -d --build --force-recreate` |
+| `dev/compose <instance> up -d` | every day |
+| `dev/compose <instance> logs -f zammad-railsserver` | any other docker compose command, `dev/compose` adds the project `ops-backoffice-<instance>` and `--env-file .env.<instance>` |
+| `dev/compose <instance> down -v` | to wipe it |
+
+**Reset it with `-v`, together with the portal.** `down` without `-v` keeps the database volume, and with it the tickets. After a portal reset the issue ids start at 300300 again. Creating `OPS-300300` in a Backoffice that still has it fails with "Please contact your administrator" (a duplicate ticket number in its log), and the Connector job in the portal's GoodJob keeps failing. Wipe every Backoffice when you reset the portal:
+
+```
+dev/compose malacky down -v && dev/compose trnava down -v
+```
+
+Then run the portal's `bin/activate-seeded-municipalities` and the `dev/up` commands it prints. Wipe a Backoffice alone, without the portal, only together with the portal's cache of its users, or the Connector sends user ids the new Backoffice doesn't have (`Invalid value for param 'customer_id'`), e.g. for Malacky:
+
+```
+cd ../ops-portal && bin/rails runner 'Connector::Tenant.find_by!(name: "Malacky").users.destroy_all'
+```
 
 ### On its own
 
