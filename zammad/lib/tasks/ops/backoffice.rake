@@ -27,23 +27,28 @@ def setup_technical_user(role_ids)
     "role_ids": role_ids,
     "active":true,
     "vip":false,
-    "id":"c-3",
     "updated_by_id": "1",
     "created_by_id": "1",
   }
-  user = User.new(params)
-  user.associations_from_param(params)
-  user.save!
+  tech_user = User.find_or_initialize_by(firstname: 'Aplikácia', lastname: 'Odkaz pre starostu').tap do |tech_user|
+    tech_user.assign_attributes(params)
+  end
+  tech_user.save!
 
-  token = Token.create!(
-    action:     'api',
-    persistent: true,
-    user_id:    user.id,
-    name: "Token 2",
-    preferences: {"permission"=>["admin.user", "report", "ticket.agent", "admin.group", "admin.role"]}
-  )
-  token.token = ENV.fetch('API_TOKEN', SecureRandom.urlsafe_base64(48))
+  token = Token.find_or_initialize_by(name: "Token 2")
+  token.action = 'api'
+  token.persistent = true
+  token.user_id = tech_user.id
+  token.preferences = {"permission"=>["admin.user", "report", "ticket.agent", "admin.group", "admin.role"]}
   token.save!
+
+  # The token value is set only after the token exists. When Zammad creates a token it replaces
+  # any assigned value with a random one (before_create :generate_token,
+  # https://github.com/zammad/zammad/blob/7.2.0/app/models/token.rb#L7), so on a fresh install
+  # API_TOKEN assigned before save! would be lost. Without API_TOKEN the generated value is kept,
+  # so the token does not change on every deploy.
+  api_token = ENV['API_TOKEN'].presence
+  token.update!(token: api_token) if api_token && token.token != api_token
 end
 
 def create_ops_user_roles
@@ -304,7 +309,7 @@ namespace :ops do
       create_ops_user_roles
       ops_tech_role = create_ops_tech_account_role
 
-      setup_technical_user([ ops_tech_role.id, Role.find_by(name: "Správca podnetov pre OPS").id, Role.find_by(name: "Admin").id ]) unless User.count > 3
+      setup_technical_user([ ops_tech_role.id, Role.find_by(name: "Správca podnetov pre OPS").id, Role.find_by(name: "Admin").id ])
 
       update_agent_role_permissions
 
