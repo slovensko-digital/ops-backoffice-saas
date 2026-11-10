@@ -19,10 +19,7 @@ class Ops::ArticleUpdatedWebhookJob < ApplicationJob
         data: {
           tenant_id: ENV.fetch('WEBHOOK_TENANT_ID'),
           ticket_id: article.ticket_id,
-          article_id: article.id,
-          # the portal skips its 24h window for admin toggles, since support may
-          # change visibility after the window (see #1278).
-          updated_by_admin: updated_by_admin?(article)
+          article_id: article.id
         }
       },
       {
@@ -44,11 +41,6 @@ class Ops::ArticleUpdatedWebhookJob < ApplicationJob
     )
 
     raise RequestError if !result.success?
-  end
-
-  def updated_by_admin?(article)
-    updater_id = article.try(:updated_by_id)
-    updater_id.present? && User.find_by(id: updater_id)&.role?('Admin') == true
   end
 
   def headers
