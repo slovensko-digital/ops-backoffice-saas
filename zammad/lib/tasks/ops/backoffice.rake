@@ -259,6 +259,13 @@ namespace :ops do
       end
 
       Rails.logger.info "Set ticket_number adapter model..."
+      # Zammad 7.2 (GHSA-6wx3-xr2r-5xqf) accepts only one of the setting's select options (ops#1370).
+      ticket_number_setting = Setting.find_by!(name: 'ticket_number')
+      ticket_number_options = ticket_number_setting.options.deep_dup
+      unless ticket_number_options.dig(:form, 0, :options).key?('Ticket::Number::OpsNumber')
+        ticket_number_options[:form][0][:options]['Ticket::Number::OpsNumber'] = 'OPS'
+        ticket_number_setting.update!(options: ticket_number_options)
+      end
       Setting.set('ticket_number', 'Ticket::Number::OpsNumber')
 
       Rails.logger.info "Create incoming group..."
