@@ -259,6 +259,13 @@ namespace :ops do
       end
 
       Rails.logger.info "Set ticket_number adapter model..."
+      # Zammad 7.2 (GHSA-6wx3-xr2r-5xqf) accepts only one of the setting's select options (ops#1370).
+      ticket_number_setting = Setting.find_by!(name: 'ticket_number')
+      ticket_number_options = ticket_number_setting.options.deep_dup
+      unless ticket_number_options.dig(:form, 0, :options).key?('Ticket::Number::OpsNumber')
+        ticket_number_options[:form][0][:options]['Ticket::Number::OpsNumber'] = 'OPS'
+        ticket_number_setting.update!(options: ticket_number_options)
+      end
       Setting.set('ticket_number', 'Ticket::Number::OpsNumber')
 
       Rails.logger.info "Create incoming group..."
@@ -551,6 +558,7 @@ namespace :ops do
           "ticket.address_lon" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.address_postcode" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.ops_portal_url" => { "operator" => "set_readonly", "set_readonly" => "true" },
+          "ticket.ops_portal_preview_url" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.ops_issue_type" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.ops_category" => { "operator" => "set_readonly", "set_readonly" => "true" },
           "ticket.ops_subcategory" => { "operator" => "set_readonly", "set_readonly" => "true" },
@@ -688,6 +696,29 @@ namespace :ops do
           flow.created_by_id = 1
         end.save!
       end
+
+      # The signed preview link (sent by the portal since 2026-11) also opens issues only their author can see
+      # (resolved_private, rejected, duplicate). It takes ops_portal_url's place (same label and position)
+      # wherever ops_portal_url would be shown. Older tickets have no preview link and keep ops_portal_url.
+      CoreWorkflow.find_or_initialize_by(name: 'ops - show ops portal preview url instead of ops portal url').tap do |flow|
+        flow.object = "Ticket"
+        flow.preferences = { "screen" => [ "edit" ] }
+        flow.condition_saved = {
+          "ticket.origin" => { "operator" => "is", "value" => [ "ops", "subtask" ] },
+          "ticket.ops_portal_preview_url" => { "operator" => "is set", "value" => [] }
+        }
+        flow.condition_selected = {}
+        flow.perform = {
+          "ticket.ops_portal_url" => { "operator" => "hide", "hide" => "true" },
+          "ticket.ops_portal_preview_url" => { "operator" => [ "set_readonly", "show" ], "set_readonly" => "true", "show" => "true" }
+        }
+        flow.active = true
+        flow.stop_after_match = false
+        flow.changeable = false
+        flow.priority = 110
+        flow.updated_by_id = 1
+        flow.created_by_id = 1
+      end.save!
 
       CoreWorkflow.find_or_initialize_by(name: 'ops - show ops portal url for ops public praises').tap do |flow|
         flow.object = "Ticket"

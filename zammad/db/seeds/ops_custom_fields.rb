@@ -182,6 +182,36 @@ ObjectManager::Attribute.add(
 
 ObjectManager::Attribute.add(
   object: 'Ticket',
+  name: 'ops_portal_preview_url',
+  display: 'Odkaz na portál',
+  data_type: 'input',
+  data_option: {
+    default: '',
+    type: 'url',
+    maxlength: 2048,
+    null: true,
+    options: {},
+    relation: ''
+  },
+  editable: true,
+  active: true,
+  screens: {
+    edit: {
+      'ticket.agent' => { shown: false },
+      'ticket.customer' => { shown: false }
+    },
+    create_middle: {
+      'ticket.customer' => { shown: false },
+      'ticket.agent' => { shown: false }
+    }
+  },
+  position: 101,
+  created_by_id: 1,
+  updated_by_id: 1
+)
+
+ObjectManager::Attribute.add(
+  object: 'Ticket',
   name: 'ops_issue_type',
   display: 'Typ dopytu',
   data_type: 'select',

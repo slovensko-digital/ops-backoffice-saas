@@ -7,3 +7,12 @@
 Ops::AssignTechRoleToAllGroupsJob.perform_now
 
 puts "OPS Tech Account role has all groups: #{Role.find_by!(name: 'OPS Tech Account').groups.pluck(:name).join(', ')}"
+
+# The local admin sees the OPS tickets in Incoming. The sample tickets task (zammad/lib/tasks/ops/backoffice.rake)
+# gives the same, but only when it creates the sample tickets, a Backoffice started by dev/up has none
+# (CREATE_SAMPLE_TICKET=false).
+admin = User.find_by!(email: ENV.fetch('ADMIN_EMAIL'))
+admin.group_names_access_map = admin.group_names_access_map.merge('Incoming' => ['full'])
+admin.roles |= [Role.find_by!(name: 'Správca podnetov pre OPS')]
+admin.save!
+puts "Admin #{admin.email} has group Incoming and role Správca podnetov pre OPS"
