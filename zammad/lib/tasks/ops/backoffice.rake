@@ -967,6 +967,28 @@ namespace :ops do
         webhook.created_by_id = 1
       end.save!
 
+      # add article.updated webhook
+      Webhook.find_or_initialize_by(name: 'OPS - article.updated').tap do |webhook|
+        webhook.endpoint = File.join(ENV.fetch('OPS_CONNECTOR_URL'), 'connector/backoffice/webhook')
+        webhook.signature_token = ENV.fetch('WEBHOOK_SECRET')
+        webhook.ssl_verify = ENV.fetch('OPS_CONNECTOR_URL').start_with?('https')
+        webhook.note = "Oznámenie zmeny viditeľnosti článku pre Odkaz pre starostu."
+        webhook.customized_payload = true
+        webhook.custom_payload = {
+          "type" => "article.updated",
+          "timestamp" => "\#{article.updated_at}",
+          "data" => {
+            "tenant_id" => ENV.fetch('WEBHOOK_TENANT_ID'),
+            "ticket_id" => "\#{ticket.id}",
+            "article_id" => "\#{article.id}"
+          }
+        }.to_json
+        webhook.preferences = {}
+        webhook.active = true
+        webhook.updated_by_id = 1
+        webhook.created_by_id = 1
+      end.save!
+
       # add article.created webhook
       Webhook.find_or_initialize_by(name: 'OPS - article.created').tap do |webhook|
         webhook.endpoint = File.join(ENV.fetch('OPS_CONNECTOR_URL'), 'connector/backoffice/webhook')
