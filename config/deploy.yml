@@ -73,7 +73,7 @@ aliases:
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
   reindex_elastic: app exec -r worker -p -i --reuse "/docker-entrypoint.sh bin/rake zammad:searchindex:rebuild[8]"
-  rake: app exec -r worker -p --reuse "/docker-entrypoint.sh bin/rake"
+  rake: app exec -r worker -p -i --reuse "/docker-entrypoint.sh bin/rake"
 
 registry:
   server: registry.dev.slovensko.digital
