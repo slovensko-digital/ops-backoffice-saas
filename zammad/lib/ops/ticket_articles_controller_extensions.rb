@@ -3,6 +3,8 @@ module Ops::TicketArticlesControllerExtensions
     # old desktop update article visibility
     article = Ticket::Article.find(params[:id])
 
+    Ops::ArticleVisibilityWindow.check!(article, current_user)
+
     Service::Ticket::Update::Validator::OpsEnsureRoleForArticleVisibilityChange.new(
       ticket: article.ticket,
       article_data: { internal: params[:internal] },
