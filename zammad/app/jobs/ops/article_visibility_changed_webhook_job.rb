@@ -1,5 +1,5 @@
-class Ops::ArticleUpdatedWebhookJob < ApplicationJob
-  ARTICLE_WEBHOOK_NAME = 'OPS - article.updated'
+class Ops::ArticleVisibilityChangedWebhookJob < ApplicationJob
+  ARTICLE_WEBHOOK_NAME = 'OPS - article.visibility_changed'
 
   class RequestError < StandardError; end
 
@@ -14,7 +14,7 @@ class Ops::ArticleUpdatedWebhookJob < ApplicationJob
     result = UserAgent.post(
       webhook.endpoint,
       {
-        type: 'article.updated',
+        type: 'article.visibility_changed',
         timestamp: article.updated_at,
         data: {
           tenant_id: ENV.fetch('WEBHOOK_TENANT_ID'),

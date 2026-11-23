@@ -967,15 +967,15 @@ namespace :ops do
         webhook.created_by_id = 1
       end.save!
 
-      # add article.updated webhook
-      Webhook.find_or_initialize_by(name: 'OPS - article.updated').tap do |webhook|
+      # add article.visibility_changed webhook
+      Webhook.find_or_initialize_by(name: 'OPS - article.visibility_changed').tap do |webhook|
         webhook.endpoint = File.join(ENV.fetch('OPS_CONNECTOR_URL'), 'connector/backoffice/webhook')
         webhook.signature_token = ENV.fetch('WEBHOOK_SECRET')
         webhook.ssl_verify = ENV.fetch('OPS_CONNECTOR_URL').start_with?('https')
         webhook.note = "Oznámenie zmeny viditeľnosti článku pre Odkaz pre starostu."
         webhook.customized_payload = true
         webhook.custom_payload = {
-          "type" => "article.updated",
+          "type" => "article.visibility_changed",
           "timestamp" => "\#{article.updated_at}",
           "data" => {
             "tenant_id" => ENV.fetch('WEBHOOK_TENANT_ID'),

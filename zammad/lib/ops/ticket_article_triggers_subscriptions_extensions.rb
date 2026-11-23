@@ -1,6 +1,6 @@
 module Ops::TicketArticleTriggersSubscriptionsExtensions
   def trigger_update_subscriptions
-    Ops::ArticleUpdatedWebhookJob.perform_later(self)
+    Ops::ArticleVisibilityChangedWebhookJob.perform_later(self) if saved_change_to_internal?
     super
   end
 end
