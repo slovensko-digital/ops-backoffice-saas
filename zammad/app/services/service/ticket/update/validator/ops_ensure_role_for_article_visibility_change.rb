@@ -5,7 +5,7 @@ class Service::Ticket::Update::Validator
 
     def valid!
       return if ticket.origin != 'ops'
-      return if article_data[:body].present? && article_data[:internal] # adding private article is always allowed
+      return if article_data[:body].present? && internal? # adding private article is always allowed
       return if @user.role?('Správca podnetov pre OPS')
 
       raise Error
@@ -15,6 +15,14 @@ class Service::Ticket::Update::Validator
       def initialize
         super(__('Nemáte oprávnenie komunikovať verejne.'))
       end
+    end
+
+    private
+
+    # Cast like ActiveRecord does when it saves the article, so "false", "0" or 0
+    # count as public here too. Anything else that isn't true counts as public as well.
+    def internal?
+      ActiveModel::Type::Boolean.new.cast(article_data[:internal]) == true
     end
   end
 end
