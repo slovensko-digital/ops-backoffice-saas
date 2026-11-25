@@ -1,0 +1,28 @@
+name: PROD Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      destination:
+        description: Town to deploy, or all of them. Runs only from main.
+        required: true
+        type: choice
+        options:
+          - all
+          - prod_banska_bystrica
+          - prod_bratislava
+          - prod_hlohovec
+          - prod_lamac
+          - prod_malacky
+          - prod_nitra
+          - prod_ruzomberok
+          - prod_sabinov
+          - prod_trnava
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      stage: prod
+      destination: ${{ inputs.destination }}
+    secrets: inherit
