@@ -4,7 +4,7 @@
 
 ### Next to the local portal
 
-Run one Backoffice per PRO responsible subject of the local portal, e.g. Malacky and Trnava, to click through a hand-off from one Backoffice to the other. The portal's `bin/activate-seeded-municipalities` activates them as PRO and prints the command that starts each one, see "Local Backoffice" in the [ops-portal README](https://github.com/slovensko-digital/ops-portal#local-backoffice):
+Run one Backoffice per PRO responsible subject of the local portal, e.g. Malacky and Trnava, to click through a hand-off from one Backoffice to the other. The portal's `bin/ops up` starts them next to Triage, `bin/ops reset` wipes them, and `bin/activate-seeded-municipalities` activates them as PRO, see "Local Backoffice" in the [ops-portal README](https://github.com/slovensko-digital/ops-portal#local-backoffice). They use `dev/up` and `dev/compose` from here, with the portal ids in the portal's `config/local_backoffices.yml`:
 
 ```
 dev/up malacky 1 Malacky 22 1 <api token> <webhook secret>
@@ -29,13 +29,7 @@ dev/up malacky 1 Malacky 22 1 <api token> <webhook secret>
 | `dev/compose <instance> logs -f zammad-railsserver` | any other docker compose command, `dev/compose` adds the project `ops-backoffice-<instance>` and `--env-file .env.<instance>` |
 | `dev/compose <instance> down -v` | to wipe it |
 
-**Reset it with `-v`, together with the portal.** `down` without `-v` keeps the database volume, and with it the tickets. After a portal reset the issue ids start at 300300 again. Creating `OPS-300300` in a Backoffice that still has it fails with "Please contact your administrator" (a duplicate ticket number in its log), and the Connector job in the portal's GoodJob keeps failing. Wipe every Backoffice when you reset the portal:
-
-```
-dev/compose malacky down -v && dev/compose trnava down -v
-```
-
-Then run the portal's `bin/activate-seeded-municipalities` and the `dev/up` commands it prints. Wipe a Backoffice alone, without the portal, only together with the portal's cache of its users, or the Connector sends user ids the new Backoffice doesn't have (`Invalid value for param 'customer_id'`), e.g. for Malacky:
+**Reset it with `-v`, together with the portal.** `down` without `-v` keeps the database volume, and with it the tickets. After a portal reset the issue ids start at 300300 again. Creating `OPS-300300` in a Backoffice that still has it fails with "Please contact your administrator" (a duplicate ticket number in its log), and the Connector job in the portal's GoodJob keeps failing. The portal's `bin/ops reset` wipes the portal, Triage and every Backoffice together, then run `bin/activate-seeded-municipalities` there. Wipe a Backoffice alone, without the portal, only together with the portal's cache of its users, or the Connector sends user ids the new Backoffice doesn't have (`Invalid value for param 'customer_id'`), e.g. for Malacky:
 
 ```
 cd ../ops-portal && bin/rails runner 'Connector::Tenant.find_by!(name: "Malacky").users.destroy_all'
