@@ -87,6 +87,8 @@ PROD deployments can only be triggered on the `main` branch. DEV deployments can
 
 The batch actions (`DEV All Deployments`, `PROD All Deployments`) build the images of all their towns once, in one job (`build.yml`), then deploy the towns, at most 3 at a time, with `kamal deploy -P`. Each town keeps its own image (`sd/ops-backoffice-<town>`), because Kamal requires the image's `service` label to match the destination; only the label differs between them.
 
+A deploy boots the Redis accessory only when its container does not exist yet, so a running Redis is not restarted. After changing the accessory's config (e.g. its image), run `kamal accessory reboot redis -d <destination>` yourself.
+
 
 ## New deployment
 
