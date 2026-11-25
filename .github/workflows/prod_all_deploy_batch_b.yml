@@ -3,31 +3,45 @@ name: PROD Batch B Deployments
 on:
   workflow_dispatch:
 
+# builds all images once, then deploys the towns in parallel
 jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      destinations: prod_malacky prod_sabinov prod_banska_bystrica prod_hlohovec prod_bratislava
+    secrets: inherit
+
   prod_malacky:
+    needs: build
     uses: ./.github/workflows/prod_malacky_deploy.yml
+    with:
+      build: false
     secrets: inherit
 
   prod_sabinov:
-    needs: prod_malacky
-    if: ${{ always() }}
+    needs: build
     uses: ./.github/workflows/prod_sabinov_deploy.yml
+    with:
+      build: false
     secrets: inherit
 
   prod_banska_bystrica:
-    needs: prod_sabinov
-    if: ${{ always() }}
+    needs: build
     uses: ./.github/workflows/prod_banska_bystrica_deploy.yml
+    with:
+      build: false
     secrets: inherit
 
   prod_hlohovec:
-    needs: prod_banska_bystrica
-    if: ${{ always() }}
+    needs: build
     uses: ./.github/workflows/prod_hlohovec_deploy.yml
+    with:
+      build: false
     secrets: inherit
 
   prod_bratislava:
-    needs: prod_hlohovec
-    if: ${{ always() }}
+    needs: build
     uses: ./.github/workflows/prod_bratislava_deploy.yml
+    with:
+      build: false
     secrets: inherit

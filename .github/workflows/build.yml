@@ -1,0 +1,69 @@
+name: Build
+
+# Builds and pushes the image of each destination on one runner. The first build
+# compiles every layer; the others reuse them from the runner's build cache and
+# differ only in their `service` label, which Kamal checks against the
+# destination's service before it deploys, so each town still gets its own
+# image (sd/ops-backoffice-<town>).
+
+on:
+  workflow_call:
+    inputs:
+      destinations:
+        description: Kamal destinations to build images for, separated by spaces
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Install Kamal gem
+        run: |
+          KAMAL_VERSION=$(ruby -rbundler -e "puts Bundler.locked_gems.specs.find { |s| s.name == 'kamal' }&.version")
+          gem install kamal -v $KAMAL_VERSION
+
+      # the builder.remote host is reached to set up the builder, even though amd64 builds run on the runner
+      - uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.OPS_PROD_DEPLOY_KEY }}
+
+      - name: Kamal build and push
+        env:
+          DESTINATIONS: ${{ inputs.destinations }}
+          KAMAL_REGISTRY_USERNAME: ${{ secrets.KAMAL_REGISTRY_USERNAME }}
+          KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          read -ra destinations <<< "$DESTINATIONS"
+
+          # creates the builder and fills its cache
+          kamal build push -d "${destinations[0]}"
+
+          # the rest only add their label and push, so run them at once
+          rest=("${destinations[@]:1}")
+          pids=()
+          for destination in "${rest[@]}"; do
+            kamal build push -d "$destination" > "$RUNNER_TEMP/build-$destination.log" 2>&1 &
+            pids+=($!)
+          done
+
+          failed=0
+          for i in "${!rest[@]}"; do
+            destination=${rest[i]}
+            if wait "${pids[i]}"; then result=ok; else result=FAILED; failed=1; fi
+            echo "::group::$destination: $result"
+            cat "$RUNNER_TEMP/build-$destination.log"
+            echo "::endgroup::"
+          done
+          exit $failed

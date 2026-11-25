@@ -85,10 +85,14 @@ All environments are deployed via manual `workflow_dispatch` on their GitHub act
 
 PROD deployments can only be triggered on the `main` branch. DEV deployments can be run on any branch.
 
+The batch actions (`DEV All Deployments`, `PROD Batch A/B Deployments`) build the images of all their towns once, in one job (`build.yml`), then deploy the towns in parallel with `kamal deploy -P`. Each town keeps its own image (`sd/ops-backoffice-<town>`), because Kamal requires the image's `service` label to match the destination; only the label differs between them.
+
+A deploy boots the Redis accessory only when its container does not exist yet, so a running Redis is not restarted. After changing the accessory's config (e.g. its image), run `kamal accessory reboot redis -d <destination>` yourself.
+
 
 ## New deployment
 
-We are using Kamal for deployment. Each deployment needs its own `destination`. File `config/deploy.<destination>.yml` must be created - take other existing configs as example. To make deploy possible from github action, create also `.github/workflows/<env>_<destination>_deploy.yml`.
+We are using Kamal for deployment. Each deployment needs its own `destination`. File `config/deploy.<destination>.yml` must be created - take other existing configs as example. To make deploy possible from github action, create also `.github/workflows/<env>_<destination>_deploy.yml` (copy an existing one, it takes the `build` input) and add the destination to its batch workflow.
 
 ### GitHub Environment secrets and variables
 

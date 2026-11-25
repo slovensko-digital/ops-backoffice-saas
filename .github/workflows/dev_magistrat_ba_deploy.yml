@@ -2,6 +2,11 @@ name: DEV Magistrat BA Deploy
 
 on:
   workflow_call:
+    inputs:
+      build:
+        description: Build the image first; false when the caller has already built it
+        type: boolean
+        default: true
   workflow_dispatch:
 
 jobs:
@@ -10,5 +15,7 @@ jobs:
     with:
       environment: dev_magistrat_ba
       environment_url: https://magistrat-ba.ops.dev.slovensko.digital
+      # null on workflow_dispatch
+      build: ${{ inputs.build != false }}
 
     secrets: inherit

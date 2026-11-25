@@ -3,25 +3,38 @@ name: PROD Batch A Deployments
 on:
   workflow_dispatch:
 
+# builds all images once, then deploys the towns in parallel
 jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      destinations: prod_lamac prod_nitra prod_trnava prod_ruzomberok
+    secrets: inherit
+
   prod_lamac:
+    needs: build
     uses: ./.github/workflows/prod_lamac_deploy.yml
+    with:
+      build: false
     secrets: inherit
 
   prod_nitra:
-    needs: prod_lamac
-    if: ${{ always() }}
+    needs: build
     uses: ./.github/workflows/prod_nitra_deploy.yml
+    with:
+      build: false
     secrets: inherit
 
   prod_trnava:
-    needs: prod_nitra
-    if: ${{ always() }}
+    needs: build
     uses: ./.github/workflows/prod_trnava_deploy.yml
+    with:
+      build: false
     secrets: inherit
 
   prod_ruzomberok:
-    needs: prod_trnava
-    if: ${{ always() }}
+    needs: build
     uses: ./.github/workflows/prod_ruzomberok_deploy.yml
+    with:
+      build: false
     secrets: inherit

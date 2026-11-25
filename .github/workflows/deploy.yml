@@ -9,9 +9,23 @@ on:
       environment_url:
         required: true
         type: string
+      build:
+        description: Build the image first; false when the caller has already built it with build.yml
+        type: boolean
+        default: true
 
 jobs:
+  build:
+    if: ${{ inputs.build }}
+    uses: ./.github/workflows/build.yml
+    with:
+      destinations: ${{ inputs.environment }}
+    secrets: inherit
+
   deploy:
+    needs: build
+    # also runs when the build job was skipped
+    if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-latest
     environment: 
       name: ${{ inputs.environment }}
@@ -36,7 +50,7 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.OPS_PROD_DEPLOY_KEY }}
 
-      - name: Kamal build, accessory and deploy
+      - name: Kamal accessory and deploy
         env:
           KAMAL_REGISTRY_USERNAME: ${{ secrets.KAMAL_REGISTRY_USERNAME }}
           KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
@@ -57,6 +71,8 @@ jobs:
           MONITORING_TOKEN: ${{ vars.MONITORING_TOKEN }}
           RAILS_LOG_LEVEL: ${{ vars.RAILS_LOG_LEVEL }}
 
+        # `accessory boot` starts Redis only where its container does not exist yet (a new destination);
+        # a running Redis is left alone. `deploy -P` pulls the image built by build.yml instead of building it.
         run: |
-          kamal accessory reboot -d ${{ inputs.environment }} all
-          kamal deploy -d ${{ inputs.environment }}
+          kamal accessory boot -d ${{ inputs.environment }} all
+          kamal deploy -P -d ${{ inputs.environment }}

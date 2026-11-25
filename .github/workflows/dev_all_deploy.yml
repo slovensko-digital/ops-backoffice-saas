@@ -3,19 +3,31 @@ name: DEV All Deployments
 on:
   workflow_dispatch:
 
+# builds all images once, then deploys the towns in parallel
 jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      destinations: dev_mojemesto dev_magistrat_ba dev_malacky
+    secrets: inherit
+
   dev_mojemesto:
+    needs: build
     uses: ./.github/workflows/dev_mojemesto_deploy.yml
+    with:
+      build: false
     secrets: inherit
 
   dev_magistrat_ba:
-    needs: dev_mojemesto
-    if: ${{ always() }}
+    needs: build
     uses: ./.github/workflows/dev_magistrat_ba_deploy.yml
+    with:
+      build: false
     secrets: inherit
 
   dev_malacky:
-    needs: dev_magistrat_ba
-    if: ${{ always() }}
+    needs: build
     uses: ./.github/workflows/dev_malacky_deploy.yml
+    with:
+      build: false
     secrets: inherit
