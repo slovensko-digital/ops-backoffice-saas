@@ -71,8 +71,7 @@ jobs:
           MONITORING_TOKEN: ${{ vars.MONITORING_TOKEN }}
           RAILS_LOG_LEVEL: ${{ vars.RAILS_LOG_LEVEL }}
 
-        # `accessory boot` starts Redis only where its container does not exist yet (a new destination);
-        # a running Redis is left alone. `deploy -P` pulls the image built by build.yml instead of building it.
+        # `deploy -P` pulls the image built by build.yml instead of building it
         run: |
-          kamal accessory boot -d ${{ inputs.environment }} all
+          kamal accessory reboot -d ${{ inputs.environment }} all
           kamal deploy -P -d ${{ inputs.environment }}
