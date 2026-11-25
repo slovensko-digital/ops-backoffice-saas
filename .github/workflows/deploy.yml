@@ -87,18 +87,13 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
-          bundler-cache: true
+          bundler-cache: true # installs Kamal from the Gemfile
 
       - name: Read URL
         id: url
         run: |
           host=$(ruby -ryaml -e 'puts YAML.load_file(ARGV[0]).dig("proxy", "host")' "config/deploy.${{ matrix.destination }}.yml")
           echo "url=https://$host" >> "$GITHUB_OUTPUT"
-
-      - name: Install Kamal gem
-        run: |
-          KAMAL_VERSION=$(ruby -rbundler -e "puts Bundler.locked_gems.specs.find { |s| s.name == 'kamal' }&.version")
-          gem install kamal -v $KAMAL_VERSION
 
       - uses: webfactory/ssh-agent@v0.10.0
         with:
@@ -128,5 +123,5 @@ jobs:
         # `accessory boot` starts Redis only where its container does not exist yet (a new destination);
         # a running Redis is left alone. `deploy -P` pulls the image built by build.yml instead of building it.
         run: |
-          kamal accessory boot -d ${{ matrix.destination }} all
-          kamal deploy -P -d ${{ matrix.destination }}
+          bundle exec kamal accessory boot -d ${{ matrix.destination }} all
+          bundle exec kamal deploy -P -d ${{ matrix.destination }}
