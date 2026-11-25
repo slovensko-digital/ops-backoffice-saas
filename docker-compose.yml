@@ -76,8 +76,10 @@ x-shared:
         condition: service_started
       zammad-memcached:
         condition: service_started
+      # off when dev/compose uses the portal's Postgres, see docker-compose.ops-postgres.yml
       zammad-postgresql:
         condition: service_started
+        required: false
       zammad-redis:
         condition: service_started
 
@@ -108,10 +110,15 @@ services:
     <<: *zammad-service
     command: ["zammad-init"]
     depends_on:
-      - zammad-mailpit
-      - zammad-memcached
-      - zammad-postgresql
-      - zammad-redis
+      zammad-mailpit:
+        condition: service_started
+      zammad-memcached:
+        condition: service_started
+      zammad-postgresql:
+        condition: service_started
+        required: false
+      zammad-redis:
+        condition: service_started
     restart: ${INIT_RESTART:-no}
     user: 0:0
 

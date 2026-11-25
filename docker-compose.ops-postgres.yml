@@ -1,0 +1,31 @@
+# Local development only: a Backoffice started by dev/up and dev/compose keeps its database in the portal's Postgres
+# (the container ops-postgres, or your own server on port 5432) instead of starting zammad-postgresql. dev/compose
+# loads it after docker-compose.yml and sets OPS_POSTGRES_DB, e.g. for Malacky:
+#
+#   postgresql://ops:ops@localhost:5432/ops_backoffice_malacky_development
+#
+# zammad-init creates the database on the first start. Plain docker compose up and the CI fresh install leave this
+# file out and keep their own zammad-postgresql.
+x-ops-postgres: &ops-postgres
+  POSTGRESQL_HOST: host.docker.internal
+  POSTGRESQL_PORT: 5432
+  POSTGRESQL_USER: ops
+  POSTGRESQL_PASS: ops
+  POSTGRESQL_DB: ${OPS_POSTGRES_DB:?dev/compose sets it}
+
+services:
+  zammad-postgresql:
+    profiles: [own-postgres]
+
+  zammad-init:
+    environment: *ops-postgres
+  zammad-dev-setup:
+    environment: *ops-postgres
+  zammad-nginx:
+    environment: *ops-postgres
+  zammad-railsserver:
+    environment: *ops-postgres
+  zammad-scheduler:
+    environment: *ops-postgres
+  zammad-websocket:
+    environment: *ops-postgres
