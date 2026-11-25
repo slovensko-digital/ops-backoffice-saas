@@ -1,1 +1,1 @@
-/docker-entrypoint.sh zammad-init && /docker-entrypoint.sh zammad-railsserver
+/docker-entrypoint.sh zammad-init && exec /docker-entrypoint.sh zammad-railsserver

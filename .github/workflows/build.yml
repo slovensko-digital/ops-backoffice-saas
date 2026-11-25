@@ -26,12 +26,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
-          bundler-cache: true
-
-      - name: Install Kamal gem
-        run: |
-          KAMAL_VERSION=$(ruby -rbundler -e "puts Bundler.locked_gems.specs.find { |s| s.name == 'kamal' }&.version")
-          gem install kamal -v $KAMAL_VERSION
+          bundler-cache: true # installs Kamal from the Gemfile
 
       # the builder.remote host is reached to set up the builder, even though amd64 builds run on the runner
       - uses: webfactory/ssh-agent@v0.10.0
@@ -48,13 +43,13 @@ jobs:
           read -ra destinations <<< "$DESTINATIONS"
 
           # creates the builder and fills its cache
-          kamal build push -d "${destinations[0]}"
+          bundle exec kamal build push -d "${destinations[0]}"
 
           # the rest only add their label and push, so run them at once
           rest=("${destinations[@]:1}")
           pids=()
           for destination in "${rest[@]}"; do
-            kamal build push -d "$destination" > "$RUNNER_TEMP/build-$destination.log" 2>&1 &
+            bundle exec kamal build push -d "$destination" > "$RUNNER_TEMP/build-$destination.log" 2>&1 &
             pids+=($!)
           done
 
