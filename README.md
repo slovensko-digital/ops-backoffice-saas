@@ -85,12 +85,12 @@ All environments are deployed via manual `workflow_dispatch` on their GitHub act
 
 PROD deployments can only be triggered on the `main` branch. DEV deployments can be run on any branch.
 
-The batch actions (`DEV All Deployments`, `PROD Batch A/B Deployments`) build the images of all their towns once, in one job (`build.yml`), then deploy the towns, at most 3 at a time, with `kamal deploy -P`. Each town keeps its own image (`sd/ops-backoffice-<town>`), because Kamal requires the image's `service` label to match the destination; only the label differs between them.
+The batch actions (`DEV All Deployments`, `PROD All Deployments`) build the images of all their towns once, in one job (`build.yml`), then deploy the towns, at most 3 at a time, with `kamal deploy -P`. Each town keeps its own image (`sd/ops-backoffice-<town>`), because Kamal requires the image's `service` label to match the destination; only the label differs between them.
 
 
 ## New deployment
 
-We are using Kamal for deployment. Each deployment needs its own `destination`. File `config/deploy.<destination>.yml` must be created - take other existing configs as example. To make deploy possible from github action, create also `.github/workflows/<env>_<destination>_deploy.yml` and add the destination and its URL to its batch workflow.
+We are using Kamal for deployment. Each deployment needs its own `destination`. File `config/deploy.<destination>.yml` must be created - take other existing configs as example. To make deploy possible from github action, create also `.github/workflows/<env>_<destination>_deploy.yml` and add the destination and its URL to `dev_all_deploy.yml` or `prod_all_deploy.yml`.
 
 ### GitHub Environment secrets and variables
 
