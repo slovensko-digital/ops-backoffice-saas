@@ -1,35 +1,76 @@
 name: Deploy
 
+# Called by `DEV Deploy` and `PROD Deploy`. Builds the images of the chosen towns
+# once (build.yml), then deploys the towns, at most 3 at a time.
+
 on:
   workflow_call:
     inputs:
-      environment:
+      stage:
+        description: dev or prod, the prefix of the Kamal destinations
         required: true
         type: string
-      environment_url:
+      destination:
+        description: A Kamal destination, or `all` for every config/deploy.<stage>_*.yml
         required: true
         type: string
-      build:
-        description: Build the image first; false when the caller has already built it with build.yml
-        type: boolean
-        default: true
 
 jobs:
+  destinations:
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.list.outputs.list }}
+      json: ${{ steps.list.outputs.json }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: config
+
+      - name: List destinations
+        id: list
+        env:
+          STAGE: ${{ inputs.stage }}
+          DESTINATION: ${{ inputs.destination }}
+        run: |
+          set -euo pipefail
+          if [[ "$STAGE" == prod && "$GITHUB_REF" != refs/heads/main ]]; then
+            echo "::error::PROD deploys run only from main, not from $GITHUB_REF"
+            exit 1
+          fi
+
+          if [[ "$DESTINATION" == all ]]; then
+            destinations=$(ls config/deploy."$STAGE"_*.yml | sed -E 's|config/deploy\.(.*)\.yml|\1|')
+          else
+            if [[ "$DESTINATION" != "$STAGE"_* || ! -f "config/deploy.$DESTINATION.yml" ]]; then
+              echo "::error::$DESTINATION is not a $STAGE destination with a config/deploy.$DESTINATION.yml"
+              exit 1
+            fi
+            destinations=$DESTINATION
+          fi
+
+          echo "list=$(echo $destinations)" >> "$GITHUB_OUTPUT"
+          echo "json=$(jq -cn '$ARGS.positional' --args $destinations)" >> "$GITHUB_OUTPUT"
+
   build:
-    if: ${{ inputs.build }}
+    needs: destinations
     uses: ./.github/workflows/build.yml
     with:
-      destinations: ${{ inputs.environment }}
+      destinations: ${{ needs.destinations.outputs.list }}
     secrets: inherit
 
   deploy:
-    needs: build
-    # also runs when the build job was skipped
-    if: ${{ !cancelled() && !failure() }}
+    needs: [destinations, build]
     runs-on: ubuntu-latest
-    environment: 
-      name: ${{ inputs.environment }}
-      url: ${{ inputs.environment_url }}
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        destination: ${{ fromJSON(needs.destinations.outputs.json) }}
+    environment:
+      name: ${{ matrix.destination }}
+      url: ${{ steps.url.outputs.url }}
 
     steps:
       - name: Checkout code
@@ -40,6 +81,12 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+
+      - name: Read URL
+        id: url
+        run: |
+          host=$(ruby -ryaml -e 'puts YAML.load_file(ARGV[0]).dig("proxy", "host")' "config/deploy.${{ matrix.destination }}.yml")
+          echo "url=https://$host" >> "$GITHUB_OUTPUT"
 
       - name: Install Kamal gem
         run: |
@@ -74,5 +121,5 @@ jobs:
         # `accessory boot` starts Redis only where its container does not exist yet (a new destination);
         # a running Redis is left alone. `deploy -P` pulls the image built by build.yml instead of building it.
         run: |
-          kamal accessory boot -d ${{ inputs.environment }} all
-          kamal deploy -P -d ${{ inputs.environment }}
+          kamal accessory boot -d ${{ matrix.destination }} all
+          kamal deploy -P -d ${{ matrix.destination }}

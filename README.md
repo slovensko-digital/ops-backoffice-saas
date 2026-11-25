@@ -81,18 +81,18 @@ See `./exec_all.sh --help`
 
 ## Deploy action
 
-All environments are deployed via manual `workflow_dispatch` on their GitHub actions. See `Actions` -> `(left menu)` -> `(corresponding deploy action)` -> `Run workflow` -> `Run workflow`.
+Deploy with the `DEV Deploy` or `PROD Deploy` action: `Actions` -> `(left menu)` -> `DEV Deploy` / `PROD Deploy` -> `Run workflow`, pick a town or `all` -> `Run workflow`.
 
-PROD deployments can only be triggered on the `main` branch. DEV deployments can be run on any branch.
+`PROD Deploy` runs only from the `main` branch. `DEV Deploy` can be run from any branch.
 
-The batch actions (`DEV All Deployments`, `PROD All Deployments`) build the images of all their towns once, in one job (`build.yml`), then deploy the towns, at most 3 at a time, with `kamal deploy -P`. Each town keeps its own image (`sd/ops-backoffice-<town>`), because Kamal requires the image's `service` label to match the destination; only the label differs between them.
+Both build the images of the chosen towns once, in one job (`build.yml`), then deploy the towns, at most 3 at a time, with `kamal deploy -P`. `all` means every `config/deploy.<stage>_*.yml`. Each town keeps its own image (`sd/ops-backoffice-<town>`), because Kamal requires the image's `service` label to match the destination; only the label differs between them.
 
 A deploy boots the Redis accessory only when its container does not exist yet, so a running Redis is not restarted. After changing the accessory's config (e.g. its image), run `kamal accessory reboot redis -d <destination>` yourself.
 
 
 ## New deployment
 
-We are using Kamal for deployment. Each deployment needs its own `destination`. File `config/deploy.<destination>.yml` must be created - take other existing configs as example. To make deploy possible from github action, create also `.github/workflows/<env>_<destination>_deploy.yml` and add the destination and its URL to `dev_all_deploy.yml` or `prod_all_deploy.yml`.
+We are using Kamal for deployment. Each deployment needs its own `destination`. File `config/deploy.<destination>.yml` must be created - take other existing configs as example. To make deploy possible from github action, add the destination to the options in `dev_deploy.yml` or `prod_deploy.yml`; `all` picks up the new config on its own, and the deploy reads the URL from its `proxy.host`.
 
 ### GitHub Environment secrets and variables
 
@@ -184,9 +184,7 @@ new_backoffice_data = {
 
 ### Deploy!
 
-Use the created GitHub action to deploy to the new destination.
-
-Note: *workflow_dispatch GitHub Action is only available if it is located in the main branch.*
+Run `DEV Deploy` or `PROD Deploy` with the new destination. The action offers it only once the new option is on the `main` branch.
 
 ### Reindex Elastic
 

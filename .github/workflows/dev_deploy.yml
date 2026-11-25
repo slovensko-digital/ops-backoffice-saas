@@ -1,0 +1,22 @@
+name: DEV Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      destination:
+        description: Town to deploy, or all of them.
+        required: true
+        type: choice
+        options:
+          - all
+          - dev_magistrat_ba
+          - dev_malacky
+          - dev_mojemesto
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      stage: dev
+      destination: ${{ inputs.destination }}
+    secrets: inherit
