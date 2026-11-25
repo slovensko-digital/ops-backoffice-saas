@@ -21,15 +21,16 @@ dev/up malacky 1 Malacky 22 1 <api token> <webhook secret>
 - The first start runs `zammad-init` and takes a few minutes.
 - No OPS sample tickets, only Zammad's welcome ticket and the portal's tickets. `dev/setup.rb` gives the admin the Incoming group and the role "Správca podnetov pre OPS" on every start, which the sample tickets did.
 - The Backoffice calls the portal on the host at `http://host.docker.internal:3000`.
+- Its database is `ops_backoffice_<instance>_development` in the portal's Postgres, next to the portal's and Triage's (`postgresql://ops:ops@localhost:5432/ops_backoffice_malacky_development`). `dev/compose` loads `docker-compose.ops-postgres.yml`, which leaves out `zammad-postgresql`, so start the portal's Postgres first (`bin/ops up` does). `zammad-init` creates the database on the first start.
 
 | Command | When |
 |---|---|
 | `dev/up <instance> <slot> ...` | the first start, and whenever the portal's values change (e.g. after a portal reset). Writes `.env.<instance>`, then runs `dev/compose <instance> up -d --build --force-recreate` |
 | `dev/compose <instance> up -d` | every day |
-| `dev/compose <instance> logs -f zammad-railsserver` | any other docker compose command, `dev/compose` adds the project `ops-backoffice-<instance>` and `--env-file .env.<instance>` |
-| `dev/compose <instance> down -v` | to wipe it |
+| `dev/compose <instance> logs -f zammad-railsserver` | any other docker compose command, `dev/compose` adds the project `ops-backoffice-<instance>`, `--env-file .env.<instance>` and `docker-compose.ops-postgres.yml` |
+| `dev/compose <instance> down -v`, then drop its database | to wipe it, e.g. `psql postgresql://ops:ops@localhost:5432/postgres -c 'DROP DATABASE ops_backoffice_malacky_development WITH (FORCE)'` |
 
-**Reset it with `-v`, together with the portal.** `down` without `-v` keeps the database volume, and with it the tickets. After a portal reset the issue ids start at 300300 again. Creating `OPS-300300` in a Backoffice that still has it fails with "Please contact your administrator" (a duplicate ticket number in its log), and the Connector job in the portal's GoodJob keeps failing. The portal's `bin/ops reset` wipes the portal, Triage and every Backoffice together, then run `bin/activate-seeded-municipalities` there. Wipe a Backoffice alone, without the portal, only together with the portal's cache of its users, or the Connector sends user ids the new Backoffice doesn't have (`Invalid value for param 'customer_id'`), e.g. for Malacky:
+**Wipe it together with the portal.** `down -v` removes its volumes, but its database (and with it the tickets) stays in the portal's Postgres until you drop it. After a portal reset the issue ids start at 300300 again. Creating `OPS-300300` in a Backoffice that still has it fails with "Please contact your administrator" (a duplicate ticket number in its log), and the Connector job in the portal's GoodJob keeps failing. The portal's `bin/ops reset` wipes the portal, Triage and every Backoffice together, then run `bin/activate-seeded-municipalities` there. Wipe a Backoffice alone, without the portal, only together with the portal's cache of its users, or the Connector sends user ids the new Backoffice doesn't have (`Invalid value for param 'customer_id'`), e.g. for Malacky:
 
 ```
 cd ../ops-portal && bin/rails runner 'Connector::Tenant.find_by!(name: "Malacky").users.destroy_all'
@@ -41,7 +42,7 @@ cd ../ops-portal && bin/rails runner 'Connector::Tenant.find_by!(name: "Malacky"
 docker compose up -d --build
 ```
 
-Backoffice on http://127.0.0.1:8081 and Mailpit on http://localhost:8026, the same ports as slot 1. Settings come from `.env.sample`, put local overrides into `.env`. After changing `.env`, run `docker compose up -d --force-recreate`, the init sets the webhooks again with the new values.
+Backoffice on http://127.0.0.1:8081 and Mailpit on http://localhost:8026, the same ports as slot 1. It has its own `zammad-postgresql`, not the portal's Postgres. Settings come from `.env.sample`, put local overrides into `.env`. After changing `.env`, run `docker compose up -d --force-recreate`, the init sets the webhooks again with the new values.
 
 ### Both ways
 
