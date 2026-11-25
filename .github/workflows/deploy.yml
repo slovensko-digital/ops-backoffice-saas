@@ -1,6 +1,6 @@
 name: Deploy
 
-# Called by `DEV Deploy` and `PROD Deploy`. Builds the images of the chosen towns
+# Called by `Deploy to DEV` and `Deploy to PROD`. Builds the images of the chosen towns
 # once (build.yml), then deploys the towns, at most 3 at a time.
 
 on:
@@ -17,6 +17,7 @@ on:
 
 jobs:
   destinations:
+    name: List destinations
     runs-on: ubuntu-latest
     outputs:
       list: ${{ steps.list.outputs.list }}
@@ -50,6 +51,11 @@ jobs:
             destinations=$DESTINATION
           fi
 
+          {
+            echo "### Deploying to ${STAGE^^}"
+            for destination in $destinations; do echo "- \`$destination\`"; done
+          } >> "$GITHUB_STEP_SUMMARY"
+
           echo "list=$(echo $destinations)" >> "$GITHUB_OUTPUT"
           echo "json=$(jq -cn '$ARGS.positional' --args $destinations)" >> "$GITHUB_OUTPUT"
 
@@ -61,6 +67,7 @@ jobs:
     secrets: inherit
 
   deploy:
+    name: Deploy ${{ matrix.destination }}
     needs: [destinations, build]
     runs-on: ubuntu-latest
     strategy:

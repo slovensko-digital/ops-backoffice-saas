@@ -75,9 +75,9 @@ See `./exec_all.sh --help`
 
 ## Deploy action
 
-Deploy with the `DEV Deploy` or `PROD Deploy` action: `Actions` -> `(left menu)` -> `DEV Deploy` / `PROD Deploy` -> `Run workflow`, pick a town or `all` -> `Run workflow`.
+Deploy with the `Deploy to DEV` or `Deploy to PROD` action: `Actions` -> `(left menu)` -> `Deploy to DEV` / `Deploy to PROD` -> `Run workflow`, pick a town or `all` -> `Run workflow`.
 
-`PROD Deploy` runs only from the `main` branch. `DEV Deploy` can be run from any branch.
+`Deploy to PROD` runs only from the `main` branch. `Deploy to DEV` can be run from any branch.
 
 Both build the images of the chosen towns once, in one job (`build.yml`), then deploy the towns, at most 3 at a time, with `kamal deploy -P`. `all` means every `config/deploy.<stage>_*.yml`. Each town keeps its own image (`sd/ops-backoffice-<town>`), because Kamal requires the image's `service` label to match the destination; only the label differs between them.
 
@@ -178,7 +178,7 @@ new_backoffice_data = {
 
 ### Deploy!
 
-Run `DEV Deploy` or `PROD Deploy` with the new destination. The action offers it only once the new option is on the `main` branch.
+Run `Deploy to DEV` or `Deploy to PROD` with the new destination. The action offers it only once the new option is on the `main` branch.
 
 ### Reindex Elastic
 

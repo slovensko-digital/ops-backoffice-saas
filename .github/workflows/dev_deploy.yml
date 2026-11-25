@@ -1,4 +1,5 @@
-name: DEV Deploy
+name: Deploy to DEV
+run-name: "Deploy to DEV: ${{ inputs.destination }}"
 
 on:
   workflow_dispatch:
