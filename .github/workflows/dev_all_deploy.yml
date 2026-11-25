@@ -3,7 +3,7 @@ name: DEV All Deployments
 on:
   workflow_dispatch:
 
-# builds all images once, then deploys the towns in parallel
+# builds all images once, then deploys the towns, at most 3 at a time
 jobs:
   build:
     uses: ./.github/workflows/build.yml
@@ -11,23 +11,22 @@ jobs:
       destinations: dev_mojemesto dev_magistrat_ba dev_malacky
     secrets: inherit
 
-  dev_mojemesto:
+  deploy:
     needs: build
-    uses: ./.github/workflows/dev_mojemesto_deploy.yml
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - environment: dev_mojemesto
+            url: https://mojemesto.ops.dev.slovensko.digital
+          - environment: dev_magistrat_ba
+            url: https://magistrat-ba.ops.dev.slovensko.digital
+          - environment: dev_malacky
+            url: https://malacky.ops.dev.slovensko.digital
+    uses: ./.github/workflows/deploy.yml
     with:
-      build: false
-    secrets: inherit
-
-  dev_magistrat_ba:
-    needs: build
-    uses: ./.github/workflows/dev_magistrat_ba_deploy.yml
-    with:
-      build: false
-    secrets: inherit
-
-  dev_malacky:
-    needs: build
-    uses: ./.github/workflows/dev_malacky_deploy.yml
-    with:
+      environment: ${{ matrix.environment }}
+      environment_url: ${{ matrix.url }}
       build: false
     secrets: inherit

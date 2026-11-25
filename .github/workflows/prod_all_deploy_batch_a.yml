@@ -3,7 +3,7 @@ name: PROD Batch A Deployments
 on:
   workflow_dispatch:
 
-# builds all images once, then deploys the towns in parallel
+# builds all images once, then deploys the towns, at most 3 at a time
 jobs:
   build:
     uses: ./.github/workflows/build.yml
@@ -11,30 +11,24 @@ jobs:
       destinations: prod_lamac prod_nitra prod_trnava prod_ruzomberok
     secrets: inherit
 
-  prod_lamac:
+  deploy:
     needs: build
-    uses: ./.github/workflows/prod_lamac_deploy.yml
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - environment: prod_lamac
+            url: https://lamac.odkazprestarostu.sk
+          - environment: prod_nitra
+            url: https://nitra.odkazprestarostu.sk
+          - environment: prod_trnava
+            url: https://trnava.odkazprestarostu.sk
+          - environment: prod_ruzomberok
+            url: https://ruzomberok.odkazprestarostu.sk
+    uses: ./.github/workflows/deploy.yml
     with:
-      build: false
-    secrets: inherit
-
-  prod_nitra:
-    needs: build
-    uses: ./.github/workflows/prod_nitra_deploy.yml
-    with:
-      build: false
-    secrets: inherit
-
-  prod_trnava:
-    needs: build
-    uses: ./.github/workflows/prod_trnava_deploy.yml
-    with:
-      build: false
-    secrets: inherit
-
-  prod_ruzomberok:
-    needs: build
-    uses: ./.github/workflows/prod_ruzomberok_deploy.yml
-    with:
+      environment: ${{ matrix.environment }}
+      environment_url: ${{ matrix.url }}
       build: false
     secrets: inherit

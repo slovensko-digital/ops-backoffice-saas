@@ -2,11 +2,6 @@ name: DEV Moje Mesto Deploy
 
 on:
   workflow_call:
-    inputs:
-      build:
-        description: Build the image first; false when the caller has already built it
-        type: boolean
-        default: true
   workflow_dispatch:
 
 jobs:
@@ -15,7 +10,5 @@ jobs:
     with:
       environment: dev_mojemesto
       environment_url: https://mojemesto.ops.dev.slovensko.digital
-      # null on workflow_dispatch
-      build: ${{ inputs.build != false }}
 
     secrets: inherit
