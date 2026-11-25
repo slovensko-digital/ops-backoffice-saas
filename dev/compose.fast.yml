@@ -1,0 +1,16 @@
+# Local development only: dev/compose starts a Backoffice with docker-compose.yml and this file, in about half the
+# time. Every Rails boot takes about 2 seconds, the entrypoint (/docker-entrypoint.sh of the Zammad image) boots Rails
+# five times in zammad-init and once more in every Zammad service to check that the init is done.
+# - zammad-init: dev/init.sh, the same steps in one Rails boot
+# - railsserver, scheduler, websocket: start right away, the depends_on in docker-compose.yml already waits for
+#   zammad-init. Same commands as the entrypoint's zammad-railsserver, zammad-scheduler and zammad-websocket.
+# A plain `docker compose up` (and the CI fresh install) still runs the entrypoint, as in production.
+services:
+  zammad-init:
+    command: ["/opt/ops-dev/init.sh"]
+  zammad-railsserver:
+    command: ["bundle", "exec", "puma", "-b", "tcp://[::]:3000", "-e", "production"]
+  zammad-scheduler:
+    command: ["bundle", "exec", "script/background-worker.rb", "start"]
+  zammad-websocket:
+    command: ["bundle", "exec", "script/websocket-server.rb", "-b", "0.0.0.0", "-p", "6042", "start"]

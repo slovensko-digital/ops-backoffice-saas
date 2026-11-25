@@ -18,7 +18,7 @@ dev/up malacky 1 Malacky 22 1 <api token> <webhook secret>
 | 2 | http://trnava.localhost:8082 | http://localhost:8027 |
 
 - Login `admin@example.org` / `PASSword123`, like the local Triage. Each Backoffice has a host name of its own: cookies ignore ports, so Backoffices (and Triage on `localhost:8080`) on the same host name log each other out. Chrome and Firefox resolve `*.localhost` without any setup.
-- The first start runs `zammad-init` and takes a few minutes.
+- It starts in about 15 seconds, a fresh install too. `dev/compose` adds `dev/compose.fast.yml`, which skips Rails boots of the Zammad image's entrypoint: `dev/init.sh` does what `zammad-init` does in one, and the Zammad services don't check again that the init is done.
 - No OPS sample tickets, only Zammad's welcome ticket and the portal's tickets. `dev/setup.rb` gives the admin the Incoming group and the role "Správca podnetov pre OPS" on every start, which the sample tickets did.
 - The Backoffice calls the portal on the host at `http://host.docker.internal:3000`.
 
@@ -41,7 +41,7 @@ cd ../ops-portal && bin/rails runner 'Connector::Tenant.find_by!(name: "Malacky"
 docker compose up -d --build
 ```
 
-Backoffice on http://127.0.0.1:8081 and Mailpit on http://localhost:8026, the same ports as slot 1. Settings come from `.env.sample`, put local overrides into `.env`. After changing `.env`, run `docker compose up -d --force-recreate`, the init sets the webhooks again with the new values.
+Backoffice on http://127.0.0.1:8081 and Mailpit on http://localhost:8026, the same ports as slot 1. Settings come from `.env.sample`, put local overrides into `.env`. It starts with the entrypoint of the Zammad image, as in production and the CI fresh install, in about 20 seconds; `docker compose -f docker-compose.yml -f dev/compose.fast.yml up -d` starts it faster. After changing `.env`, run `docker compose up -d --force-recreate`, the init sets the webhooks again with the new values.
 
 ### Both ways
 

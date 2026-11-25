@@ -44,4 +44,4 @@ CREATE_SAMPLE_TICKET=false
 ENV
 
 dev/compose "$instance" up -d --build --force-recreate
-echo "Backoffice $name: http://$instance.localhost:$port (first start takes a few minutes), Mailpit: http://localhost:$mail_port"
+echo "Backoffice $name: http://$instance.localhost:$port, Mailpit: http://localhost:$mail_port"
