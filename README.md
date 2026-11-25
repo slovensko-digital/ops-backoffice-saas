@@ -85,6 +85,8 @@ All environments are deployed via manual `workflow_dispatch` on their GitHub act
 
 PROD deployments can only be triggered on the `main` branch. DEV deployments can be run on any branch.
 
+A deploy boots the Redis accessory only when its container does not exist yet, so a running Redis is not restarted. After changing the accessory's config (e.g. its image), run `kamal accessory reboot redis -d <destination>` yourself.
+
 
 ## New deployment
 

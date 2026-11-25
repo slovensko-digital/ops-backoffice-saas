@@ -57,6 +57,8 @@ jobs:
           MONITORING_TOKEN: ${{ vars.MONITORING_TOKEN }}
           RAILS_LOG_LEVEL: ${{ vars.RAILS_LOG_LEVEL }}
 
+        # `accessory boot` starts Redis only where its container does not exist yet (a new destination);
+        # a running Redis is left alone
         run: |
-          kamal accessory reboot -d ${{ inputs.environment }} all
+          kamal accessory boot -d ${{ inputs.environment }} all
           kamal deploy -d ${{ inputs.environment }}
